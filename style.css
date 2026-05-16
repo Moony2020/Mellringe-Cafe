@@ -509,6 +509,9 @@ ul {
   box-shadow: 0 10px 30px rgba(0,0,0,0.03);
 }
 
+.bottom-card:nth-child(2) { transition-delay: 0.1s; }
+.bottom-card:nth-child(3) { transition-delay: 0.2s; }
+
 .bottom-card-info h3 {
   font-size: 18px;
   margin-bottom: 5px;

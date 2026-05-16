@@ -1,75 +1,376 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin | Mellringe Café</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mellringe Café - Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: #F7F5F0;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    h1 {
+      color: #2D211B;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    input[type="text"], input[type="password"], select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-family: inherit;
+    }
+    button {
+      background: #C4A47C;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #A68761;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      font-weight: 600;
+      color: #2D211B;
+    }
+    .action-btn {
+      padding: 6px 12px;
+      font-size: 13px;
+      margin-right: 5px;
+    }
+    .btn-danger {
+      background: #e74c3c;
+    }
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+    #loginSection, #dashboardSection {
+      display: none;
+    }
+    .active-section {
+      display: block !important;
+    }
+    .image-preview {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  </style>
 </head>
 <body>
-  <section class="login-screen" id="loginScreen">
-    <form class="login-card" id="loginForm">
-      <img src="images/logo.svg" alt="Mellringe Café logo">
-      <h1>Admin Login</h1>
-      <p>Logga in för att ändra meny, priser, bilder och kontaktinformation.</p>
-      <label>Email eller användarnamn<input id="loginUser" required value="admin@mellringecafe.se"></label>
-      <label>Lösenord<input id="loginPassword" type="password" required value="Mellringe2025!"></label>
-      <button>Logga in</button>
-      <p class="error" id="loginError"></p>
-      <div class="demo"><strong>Demo:</strong> admin@mellringecafe.se / Mellringe2025!</div>
-      <a href="index.html">← Till webbplatsen</a>
-    </form>
-  </section>
 
-  <section class="admin-app hidden" id="adminApp">
-    <aside>
-      <div class="brand"><img src="images/logo.svg"><div><strong>Mellringe Café</strong><span>Admin Panel</span></div></div>
-      <button class="tab active" data-tab="dashboard">Dashboard</button>
-      <button class="tab" data-tab="menu">Meny & priser</button>
-      <button class="tab" data-tab="gallery">Galleri</button>
-      <button class="tab" data-tab="settings">Sidinformation</button>
-      <button class="tab danger" id="logoutBtn">Logga ut</button>
-      <a class="view" href="index.html">Visa webbplatsen →</a>
-    </aside>
+<div class="container">
+  <h1>Mellringe Café Admin</h1>
 
-    <main>
-      <header>
-        <div><span>Admin kontroll</span><h2 id="pageTitle">Dashboard</h2></div>
-        <div class="actions"><button id="exportBtn">Exportera JSON</button><button id="resetBtn">Återställ demo</button></div>
-      </header>
+  <!-- LOGIN SECTION -->
+  <div id="loginSection" class="card active-section" style="max-width: 400px; margin: 0 auto;">
+    <h2 style="text-align: center; margin-top: 0;">Logga in</h2>
+    <div class="form-group">
+      <label>Användarnamn</label>
+      <input type="text" id="loginUser">
+    </div>
+    <div class="form-group">
+      <label>Lösenord</label>
+      <input type="password" id="loginPass">
+    </div>
+    <button onclick="login()" style="width: 100%;">Logga In</button>
+  </div>
 
-      <section class="panel active" id="dashboard">
-        <div class="stats"><div><span>Kategorier</span><b id="categoryCount">0</b></div><div><span>Menyartiklar</span><b id="itemCount">0</b></div><div><span>Galleribilder</span><b id="galleryCount">0</b></div></div>
-        <article class="notice"><h3>Viktig säkerhetsnotering</h3><p>Detta är en statisk frontend-demo som sparar ändringar i browser localStorage. För riktig produktion behövs backend, databas, säkra sessions/cookies, lösenordshashning och riktig bilduppladdning.</p></article>
-      </section>
+  <!-- DASHBOARD SECTION -->
+  <div id="dashboardSection">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="margin: 0;">Hantera Meny</h2>
+      <div>
+        <button onclick="togglePasswordForm()" style="background: #34495e; margin-right: 10px;">Byt Lösenord</button>
+        <button onclick="logout()" class="btn-danger">Logga Ut</button>
+      </div>
+    </div>
 
-      <section class="panel" id="menu">
-        <div class="section-head"><h3>Meny & priser</h3><button class="primary" id="addCategoryBtn">+ Lägg till kategori</button></div>
-        <div id="categoryEditor"></div>
-      </section>
+    <!-- CHANGE PASSWORD FORM -->
+    <div id="passwordSection" class="card" style="display: none;">
+      <h3 style="margin-top: 0;">Byt Lösenord</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-group">
+          <label>Gammalt Lösenord</label>
+          <input type="password" id="oldPassword">
+        </div>
+        <div class="form-group">
+          <label>Nytt Lösenord</label>
+          <input type="password" id="newPassword">
+        </div>
+      </div>
+      <button onclick="changePassword()">Uppdatera Lösenord</button>
+    </div>
 
-      <section class="panel" id="gallery">
-        <div class="section-head"><h3>Galleri</h3><button class="primary" id="addGalleryBtn">+ Lägg till bild</button></div>
-        <div id="galleryEditor"></div>
-      </section>
+    <!-- ADD ITEM FORM -->
+    <div class="card">
+      <h3 style="margin-top: 0;" id="formTitle">Lägg till ny produkt</h3>
+      <form id="itemForm" onsubmit="saveItem(event)">
+        <input type="hidden" id="itemId">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="form-group">
+            <label>Kategori</label>
+            <input type="text" id="itemCategory" placeholder="T.ex. Manakish" required>
+          </div>
+          <div class="form-group">
+            <label>Kategori Ikon (Emoji)</label>
+            <input type="text" id="itemIcon" placeholder="T.ex. 🫓" required>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="form-group">
+            <label>Produktnamn</label>
+            <input type="text" id="itemName" placeholder="T.ex. Zaatar" required>
+          </div>
+          <div class="form-group">
+            <label>Pris (inkl. kr)</label>
+            <input type="text" id="itemPrice" placeholder="T.ex. 20 kr" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Bild (Valfritt)</label>
+          <input type="file" id="itemImage" accept="image/*">
+        </div>
+        <button type="submit" id="saveBtn">Spara Produkt</button>
+        <button type="button" onclick="resetForm()" style="background: #ccc; color: #333;">Avbryt</button>
+      </form>
+    </div>
 
-      <section class="panel" id="settings">
-        <form id="settingsForm" class="settings-form">
-          <label>Café namn<input name="cafeName"></label>
-          <label>Hero rubrik<input name="heroTitle"></label>
-          <label>Hero text<textarea name="heroSubtitle" rows="3"></textarea></label>
-          <label>Om oss text<textarea name="aboutText" rows="5"></textarea></label>
-          <div class="two"><label>Telefon<input name="phone"></label><label>Telefon visning<input name="phoneDisplay"></label></div>
-          <label>Address<input name="address"></label>
-          <div class="two"><label>Instagram<input name="instagram"></label><label>TikTok<input name="tiktok"></label></div>
-          <button class="primary">Spara sidinformation</button>
-        </form>
-      </section>
-    </main>
-  </section>
-  <script src="admin.js"></script>
+    <!-- MENU TABLE -->
+    <div class="card" style="overflow-x: auto;">
+      <table id="menuTable">
+        <thead>
+          <tr>
+            <th>Bild</th>
+            <th>Kategori</th>
+            <th>Namn</th>
+            <th>Pris</th>
+            <th>Hantera</th>
+          </tr>
+        </thead>
+        <tbody id="menuList">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let token = localStorage.getItem('adminToken');
+
+  if (token) {
+    showDashboard();
+  }
+
+  async function login() {
+    const user = document.getElementById('loginUser').value;
+    const pass = document.getElementById('loginPass').value;
+    
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pass })
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('adminToken', data.token);
+        token = data.token;
+        showDashboard();
+      } else {
+        alert('Fel användarnamn eller lösenord');
+      }
+    } catch (e) {
+      alert('Kunde inte ansluta till servern');
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('adminToken');
+    token = null;
+    document.getElementById('loginSection').classList.add('active-section');
+    document.getElementById('dashboardSection').classList.remove('active-section');
+  }
+
+  function showDashboard() {
+    document.getElementById('loginSection').classList.remove('active-section');
+    document.getElementById('dashboardSection').classList.add('active-section');
+    loadMenu();
+  }
+
+  async function loadMenu() {
+    try {
+      const res = await fetch('/api/menu');
+      const items = await res.json();
+      const tbody = document.getElementById('menuList');
+      tbody.innerHTML = '';
+      
+      items.forEach(item => {
+        const tr = document.createElement('tr');
+        const imgPath = item.image ? item.image : '';
+        tr.innerHTML = `
+          <td>${imgPath ? \`<img src="\${imgPath}" class="image-preview">\` : '-'}</td>
+          <td>${item.categoryIcon} ${item.category}</td>
+          <td>${item.name}</td>
+          <td>${item.price}</td>
+          <td>
+            <button class="action-btn" onclick='editItem(${JSON.stringify(item)})'>Ändra</button>
+            <button class="action-btn btn-danger" onclick="deleteItem('${item._id}')">Ta bort</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function saveItem(e) {
+    e.preventDefault();
+    const id = document.getElementById('itemId').value;
+    const formData = new FormData();
+    formData.append('category', document.getElementById('itemCategory').value);
+    formData.append('categoryIcon', document.getElementById('itemIcon').value);
+    formData.append('name', document.getElementById('itemName').value);
+    formData.append('price', document.getElementById('itemPrice').value);
+    
+    const imageFile = document.getElementById('itemImage').files[0];
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+
+    const url = id ? \`/api/menu/\${id}\` : '/api/menu';
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': 'Bearer ' + token
+        },
+        body: formData
+      });
+      if (res.ok) {
+        resetForm();
+        loadMenu();
+      } else {
+        alert('Ett fel uppstod när produkten skulle sparas');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function editItem(item) {
+    document.getElementById('formTitle').innerText = 'Ändra produkt';
+    document.getElementById('itemId').value = item._id;
+    document.getElementById('itemCategory').value = item.category;
+    document.getElementById('itemIcon').value = item.categoryIcon;
+    document.getElementById('itemName').value = item.name;
+    document.getElementById('itemPrice').value = item.price;
+    document.getElementById('saveBtn').innerText = 'Uppdatera';
+    window.scrollTo(0,0);
+  }
+
+  function resetForm() {
+    document.getElementById('itemForm').reset();
+    document.getElementById('itemId').value = '';
+    document.getElementById('formTitle').innerText = 'Lägg till ny produkt';
+    document.getElementById('saveBtn').innerText = 'Spara Produkt';
+  }
+
+  async function deleteItem(id) {
+    if (!confirm('Är du säker på att du vill ta bort denna produkt?')) return;
+    try {
+      const res = await fetch(\`/api/menu/\${id}\`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      });
+      if (res.ok) {
+        loadMenu();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function togglePasswordForm() {
+    const section = document.getElementById('passwordSection');
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+  }
+
+  async function changePassword() {
+    const oldPassword = document.getElementById('oldPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    if (!oldPassword || !newPassword) return alert('Fyll i båda fälten');
+
+    try {
+      const res = await fetch('/api/auth/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ oldPassword, newPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('Lösenordet har ändrats framgångsrikt!');
+        document.getElementById('oldPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        togglePasswordForm();
+      } else {
+        alert(data.message || 'Ett fel uppstod');
+      }
+    } catch (e) {
+      alert('Kunde inte ansluta till servern');
+    }
+  }
+</script>
 </body>
 </html>

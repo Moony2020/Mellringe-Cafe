@@ -166,7 +166,7 @@ function renderMenu() {
   const menuGrid = document.getElementById("menuGrid");
   if (!menuGrid) return;
 
-  menuGrid.innerHTML = menuData.map((cat, index) => `
+  menuGrid.innerHTML = activeMenuData.map((cat, index) => `
     <div class="menu-card-mobile" onclick="showCategoryDetails(${index})">
       <div class="card-image-box">
         <img src="${cat.image}" alt="${cat.category}">
@@ -183,7 +183,7 @@ function renderMenu() {
 }
 
 function showCategoryDetails(index) {
-  const cat = menuData[index];
+  const cat = activeMenuData[index];
   const modal = document.getElementById("categoryModal");
   if (!modal) return;
 
@@ -274,7 +274,35 @@ function renderGallery() {
   grid.innerHTML = galleryImages.map(img => `<img src="${img}" alt="Galleri">`).join("");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+let activeMenuData = menuData; // Default to hardcoded
+
+async function fetchMenuData() {
+  try {
+    const res = await fetch('/api/menu');
+    const items = await res.json();
+    if (items && items.length > 0) {
+      const grouped = {};
+      items.forEach(item => {
+        if (!grouped[item.category]) {
+          grouped[item.category] = {
+            category: item.category,
+            icon: item.categoryIcon || '🍽️',
+            price: "Från " + item.price,
+            image: item.image || "images/cat-manakish.png",
+            items: []
+          };
+        }
+        grouped[item.category].items.push([item.name, item.price]);
+      });
+      activeMenuData = Object.values(grouped);
+    }
+  } catch (err) {
+    console.log("Could not fetch from API, using default menuData");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await fetchMenuData();
   renderMenu();
   renderGallery();
   
