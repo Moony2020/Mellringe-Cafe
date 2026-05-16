@@ -1,0 +1,163 @@
+{
+  "menu": [
+    {
+      "title": "Varma drycker",
+      "icon": "☕",
+      "image": "images/drinks.jpg",
+      "price": "Från 15 kr",
+      "items": [
+        ["Bryggkaffe", "15/20 kr"],
+        ["Te", "15/20 kr"],
+        ["Grönt te", "15/20 kr"],
+        ["Chai Latte Kaffe", "20/25 kr"],
+        ["Cappuccino", "20/25 kr"],
+        ["Latte Macchiato", "25/30 kr"],
+        ["Kaffe med mjölk", "20/30 kr"],
+        ["Varm choklad", "25/30 kr"],
+        ["Latte", "25/30 kr"],
+        ["Espresso Macchiato", "25/30 kr"]
+      ]
+    },
+    {
+      "title": "Kalla drycker",
+      "icon": "🥤",
+      "image": "images/drinks.jpg",
+      "price": "Från 15 kr",
+      "items": [
+        ["Läsk", "15 kr"],
+        ["Ayran", "15 kr"],
+        ["Loka", "15 kr"],
+        ["Juice", "15 kr"],
+        ["Red Bull", "25 kr"]
+      ]
+    },
+    {
+      "title": "Bakelser",
+      "icon": "🍰",
+      "image": "images/category-pastries.png",
+      "price": "Från 10 kr",
+      "items": [
+        ["Kokoskaka", "12 kr"],
+        ["Morotskaka", "15 kr"],
+        ["Chokladboll", "10 kr"],
+        ["Choklad", "15 kr"],
+        ["Croissant", "15 kr"],
+        ["Croissant med choklad", "35 kr"],
+        ["Croissant med pistage", "35 kr"]
+      ]
+    },
+    {
+      "title": "Manakish och bröd",
+      "icon": "🥐",
+      "image": "images/category-manakish.png",
+      "price": "Från 15 kr",
+      "items": [
+        ["Zaatar", "20 kr"],
+        ["Ost", "25 kr"],
+        ["Muhammara", "20 kr"],
+        ["Grönsaker", "30 kr"],
+        ["Kyckling", "30 kr"],
+        ["Ost burak", "29 kr"],
+        ["Fatayer kött", "29 kr"],
+        ["Bröd 400 gr", "15 kr"]
+      ]
+    },
+    {
+      "title": "Falafel",
+      "icon": "🧆",
+      "image": "images/category-falafel.png",
+      "price": "Från 55 kr",
+      "items": [
+        ["Falafelrulle", "60 kr"],
+        ["Falafel with bread", "60 kr"],
+        ["Falafel snacks", "55 kr"],
+        ["Falafelsallad", "75 kr"]
+      ]
+    },
+    {
+      "title": "Veg",
+      "icon": "🌿",
+      "image": "images/dolma.jpg",
+      "price": "119 kr",
+      "items": [
+        ["Dolma tallrik", "119 kr"]
+      ]
+    },
+    {
+      "title": "Såser",
+      "icon": "🥣",
+      "image": "images/hummus.jpg",
+      "price": "10 kr",
+      "items": [
+        ["Tsatsiki", "10 kr"],
+        ["Vitlökssås", "10 kr"],
+        ["Yoghurtsås", "10 kr"],
+        ["Rhode Island", "10 kr"]
+      ]
+    },
+    {
+      "title": "Smörgåsar",
+      "icon": "🥪",
+      "image": "images/sandwich.jpg",
+      "price": "Se dagens erbjudande",
+      "items": [
+        ["Kycklingsmörgås", "45 kr"],
+        ["Grönsakssmörgås", "35 kr"]
+      ],
+      "note": "Färska smörgåsar. Fråga caféet om dagens sortiment."
+    }
+  ],
+  "settings": {
+    "cafeName": "Mellringe Café",
+    "heroTitle": "Mellringe Café",
+    "heroSubtitle": "Färska bakverk, nybryggt kaffe, traditionell manakish, krispig falafel och smakrika smörgåsar – mitt i Örebro, med kärlek till varje detalj.",
+    "aboutText": "Mellringe Café är ett lokalt café i Örebro som serverar mat och bakverk inspirerade av Mellanöstern med färska råvaror och omtanke i varje detalj.",
+    "address": "Irisgatan 80, 70353 Örebro",
+    "phone": "070 731 97 10",
+    "phoneDisplay": "070 731 97 10",
+    "instagram": "@mellringecafee",
+    "tiktok": "@mellringecaf"
+  },
+  "gallery": [
+    {
+      "title": "Falafelrulle",
+      "image": "images/falafel-wrap.jpg"
+    },
+    {
+      "title": "Bakelser",
+      "image": "images/pastries.jpg"
+    },
+    {
+      "title": "Manakish",
+      "image": "images/manakish.jpg"
+    },
+    {
+      "title": "Bröd",
+      "image": "images/mini-pies.jpg"
+    },
+    {
+      "title": "Dolma",
+      "image": "images/dolma.jpg"
+    },
+    {
+      "title": "Dessert",
+      "image": "images/cake.jpg"
+    },
+    {
+      "title": "Tabbouleh",
+      "image": "images/tabbouleh.jpg"
+    },
+    {
+      "title": "Bulgur",
+      "image": "images/bulgur.jpg"
+    },
+    {
+      "title": "Hummus",
+      "image": "images/hummus.jpg"
+    },
+    {
+      "title": "Mutabbal",
+      "image": "images/mutabbal.jpg"
+    }
+  ]
+}

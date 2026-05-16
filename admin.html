@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Mellringe Café</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <section class="login-screen" id="loginScreen">
+    <form class="login-card" id="loginForm">
+      <img src="images/logo.svg" alt="Mellringe Café logo">
+      <h1>Admin Login</h1>
+      <p>Logga in för att ändra meny, priser, bilder och kontaktinformation.</p>
+      <label>Email eller användarnamn<input id="loginUser" required value="admin@mellringecafe.se"></label>
+      <label>Lösenord<input id="loginPassword" type="password" required value="Mellringe2025!"></label>
+      <button>Logga in</button>
+      <p class="error" id="loginError"></p>
+      <div class="demo"><strong>Demo:</strong> admin@mellringecafe.se / Mellringe2025!</div>
+      <a href="index.html">← Till webbplatsen</a>
+    </form>
+  </section>
+
+  <section class="admin-app hidden" id="adminApp">
+    <aside>
+      <div class="brand"><img src="images/logo.svg"><div><strong>Mellringe Café</strong><span>Admin Panel</span></div></div>
+      <button class="tab active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="menu">Meny & priser</button>
+      <button class="tab" data-tab="gallery">Galleri</button>
+      <button class="tab" data-tab="settings">Sidinformation</button>
+      <button class="tab danger" id="logoutBtn">Logga ut</button>
+      <a class="view" href="index.html">Visa webbplatsen →</a>
+    </aside>
+
+    <main>
+      <header>
+        <div><span>Admin kontroll</span><h2 id="pageTitle">Dashboard</h2></div>
+        <div class="actions"><button id="exportBtn">Exportera JSON</button><button id="resetBtn">Återställ demo</button></div>
+      </header>
+
+      <section class="panel active" id="dashboard">
+        <div class="stats"><div><span>Kategorier</span><b id="categoryCount">0</b></div><div><span>Menyartiklar</span><b id="itemCount">0</b></div><div><span>Galleribilder</span><b id="galleryCount">0</b></div></div>
+        <article class="notice"><h3>Viktig säkerhetsnotering</h3><p>Detta är en statisk frontend-demo som sparar ändringar i browser localStorage. För riktig produktion behövs backend, databas, säkra sessions/cookies, lösenordshashning och riktig bilduppladdning.</p></article>
+      </section>
+
+      <section class="panel" id="menu">
+        <div class="section-head"><h3>Meny & priser</h3><button class="primary" id="addCategoryBtn">+ Lägg till kategori</button></div>
+        <div id="categoryEditor"></div>
+      </section>
+
+      <section class="panel" id="gallery">
+        <div class="section-head"><h3>Galleri</h3><button class="primary" id="addGalleryBtn">+ Lägg till bild</button></div>
+        <div id="galleryEditor"></div>
+      </section>
+
+      <section class="panel" id="settings">
+        <form id="settingsForm" class="settings-form">
+          <label>Café namn<input name="cafeName"></label>
+          <label>Hero rubrik<input name="heroTitle"></label>
+          <label>Hero text<textarea name="heroSubtitle" rows="3"></textarea></label>
+          <label>Om oss text<textarea name="aboutText" rows="5"></textarea></label>
+          <div class="two"><label>Telefon<input name="phone"></label><label>Telefon visning<input name="phoneDisplay"></label></div>
+          <label>Address<input name="address"></label>
+          <div class="two"><label>Instagram<input name="instagram"></label><label>TikTok<input name="tiktok"></label></div>
+          <button class="primary">Spara sidinformation</button>
+        </form>
+      </section>
+    </main>
+  </section>
+  <script src="admin.js"></script>
+</body>
+</html>

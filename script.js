@@ -1,0 +1,305 @@
+const menuData = [
+  {
+    category: "Varma drycker",
+    icon: "☕",
+    price: "Från 15 kr",
+    image: "images/cat-hot-drinks.png",
+    items: [
+      ["Bryggkaffe", "15/20 kr"],
+      ["Te", "15/20 kr"],
+      ["Grönt te", "15/20 kr"],
+      ["Chai Latte Kaffe", "20/25 kr"],
+      ["Cappuccino", "20/25 kr"],
+      ["Latte Macchiato", "25/30 kr"],
+      ["Kaffe med mjölk", "20/30 kr"],
+      ["Varm choklad", "25/30 kr"],
+      ["Latte", "25/30 kr"],
+      ["Espresso Macchiato", "25/30 kr"]
+    ]
+  },
+  {
+    category: "Kalla drycker",
+    icon: "🥤",
+    price: "Från 15 kr",
+    image: "images/cat-cold-drinks.png",
+    items: [
+      ["Läsk", "15 kr"],
+      ["Ayran", "15 kr"],
+      ["Loka", "15 kr"],
+      ["Juice", "15 kr"],
+      ["Red Bull", "25 kr"]
+    ]
+  },
+  {
+    category: "Bakelser",
+    icon: "🍰",
+    price: "Från 10 kr",
+    image: "images/cat-pastries.png",
+    items: [
+      ["Kokoskaka", "12 kr"],
+      ["Morotskaka", "15 kr"],
+      ["Chokladboll", "10 kr"],
+      ["Choklad", "15 kr"],
+      ["Croissant", "15 kr"],
+      ["Croissant med choklad", "35 kr"],
+      ["Croissant med pistage", "35 kr"]
+    ]
+  },
+  {
+    category: "Manakish och bröd",
+    icon: "🫓",
+    price: "Från 15 kr",
+    image: "images/cat-manakish.png",
+    items: [
+      ["Zaatar", "20 kr"],
+      ["Ost", "25 kr"],
+      ["Muhammara", "20 kr"],
+      ["Grönsaker", "30 kr"],
+      ["Kyckling", "30 kr"],
+      ["Ost burak", "29 kr"],
+      ["Fatayer kött", "29 kr"],
+      ["Bröd 400 gr", "15 kr"]
+    ]
+  },
+  {
+    category: "Falafel",
+    icon: "🧆",
+    price: "Från 55 kr",
+    image: "images/cat-falafel.png",
+    items: [
+      ["Falafelrulle", "60 kr"],
+      ["Falafel med bröd", "60 kr"],
+      ["Falafel snacks", "55 kr"],
+      ["Falafelsallad", "75 kr"]
+    ]
+  },
+  {
+    category: "Veg",
+    icon: "🥗",
+    price: "119 kr",
+    image: "images/cat-dolma.png",
+    items: [
+      ["Dolma tallrik", "119 kr"]
+    ]
+  },
+  {
+    category: "Såser",
+    icon: "🥣",
+    price: "10 kr",
+    image: "images/cat-sauces.png",
+    items: [
+      ["Tsatsiki", "10 kr"],
+      ["Vitlökssås", "10 kr"],
+      ["Yoghurtsås", "10 kr"],
+      ["Rhode Island", "10 kr"]
+    ]
+  },
+  {
+    category: "Smörgåsar",
+    icon: "🥪",
+    price: "Från 35 kr",
+    image: "images/cat-sandwich.png",
+    items: [
+      ["Kycklingsmörgås", "45 kr"],
+      ["Vegetarisk smörgås", "35 kr"]
+    ]
+  }
+];
+
+const galleryImages = [
+  "images/hero-final.png",
+  "images/gal-manakish.png",
+  "images/gal-tabbouleh.png",
+  "images/cat-pastries.png",
+  "images/cat-hot-drinks.png",
+  "images/hero-cinematic.png"
+];
+
+function scrollMenu(direction) {
+  const container = document.getElementById("menuGrid");
+  if (!container) return;
+  const scrollAmount = 300;
+  if (direction === 'left') {
+    container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+  } else {
+    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+  }
+}
+
+function updateScrollArrows() {
+  const container = document.getElementById("menuGrid");
+  const leftArrow = document.getElementById("leftArrow");
+  const rightArrow = document.getElementById("rightArrow");
+  if (!container || !leftArrow || !rightArrow) return;
+
+  const scrollLeft = Math.round(container.scrollLeft);
+  const scrollWidth = container.scrollWidth;
+  const clientWidth = container.clientWidth;
+  
+  // Maximum scrollable distance
+  const maxScroll = scrollWidth - clientWidth;
+
+  // Show/Hide Left Arrow (show if we have scrolled more than 10px)
+  if (scrollLeft > 10) {
+    leftArrow.style.opacity = "1";
+    leftArrow.style.visibility = "visible";
+    leftArrow.style.pointerEvents = "all";
+  } else {
+    leftArrow.style.opacity = "0";
+    leftArrow.style.visibility = "hidden";
+    leftArrow.style.pointerEvents = "none";
+  }
+
+  // Show/Hide Right Arrow (show if we are more than 10px from the end)
+  if (scrollLeft < maxScroll - 10) {
+    rightArrow.style.opacity = "1";
+    rightArrow.style.visibility = "visible";
+    rightArrow.style.pointerEvents = "all";
+  } else {
+    rightArrow.style.opacity = "0";
+    rightArrow.style.visibility = "hidden";
+    rightArrow.style.pointerEvents = "none";
+  }
+}
+
+function renderMenu() {
+  const menuGrid = document.getElementById("menuGrid");
+  if (!menuGrid) return;
+
+  menuGrid.innerHTML = menuData.map((cat, index) => `
+    <div class="menu-card-mobile" onclick="showCategoryDetails(${index})">
+      <div class="card-image-box">
+        <img src="${cat.image}" alt="${cat.category}">
+      </div>
+      <div class="card-info">
+        <h3>${cat.category}</h3>
+        <p>${cat.price}</p>
+      </div>
+    </div>
+  `).join("");
+
+  // Initialize arrow visibility after rendering with a slight delay
+  setTimeout(updateScrollArrows, 500);
+}
+
+function showCategoryDetails(index) {
+  const cat = menuData[index];
+  const modal = document.getElementById("categoryModal");
+  if (!modal) return;
+
+  modal.innerHTML = `
+    <button class="mobile-close" onclick="closeCategoryModal()">&times;</button>
+    <div class="container" style="max-width: 800px; padding-top: 40px;">
+      <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 40px;">
+        <span style="font-size: 50px;">${cat.icon}</span>
+        <h2 style="font-family: var(--font-serif); font-size: 42px;">${cat.category}</h2>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        ${cat.items.map(item => `
+          <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px dotted rgba(0,0,0,0.1); padding-bottom: 10px;">
+            <span style="font-weight: 600; font-size: 18px;">${item[0]}</span>
+            <span style="color: var(--gold-dark); font-weight: 700; font-size: 18px;">${item[1]}</span>
+          </div>
+        `).join("")}
+      </div>
+      <button onclick="closeCategoryModal()" style="margin-top: 50px; width: 100%; padding: 20px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: 700; font-size: 16px; cursor: pointer;">TILLBAKA TILL MENYN</button>
+    </div>
+  `;
+  modal.style.display = "block";
+  document.body.style.overflow = "hidden";
+}
+
+function closeCategoryModal() {
+  const modal = document.getElementById("categoryModal");
+  if (modal) {
+    modal.style.display = "none";
+    document.body.style.overflow = "auto";
+  }
+}
+
+// Navigation Active State Handling
+function updateActiveNav() {
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.desktop-nav a, .mobile-menu a');
+  
+  let current = "";
+  sections.forEach(section => {
+    const sectionTop = section.offsetTop;
+    if (window.scrollY >= (sectionTop - 150)) {
+      current = section.getAttribute('id');
+    }
+  });
+
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (current && link.getAttribute('href').includes(current)) {
+      link.classList.add('active');
+    }
+  });
+}
+
+window.addEventListener('scroll', updateActiveNav);
+window.addEventListener('load', updateActiveNav);
+
+// Click handler for all nav links
+document.querySelectorAll('.desktop-nav a, .mobile-menu a').forEach(link => {
+  link.addEventListener('click', function() {
+    document.querySelectorAll('.desktop-nav a, .mobile-menu a').forEach(l => l.classList.remove('active'));
+    this.classList.add('active');
+    if(this.closest('.mobile-menu')) {
+        closeMobileMenu();
+    }
+  });
+});
+
+function openMobileMenu() {
+  const menu = document.getElementById("mobileMenu");
+  const overlay = document.getElementById("mobileOverlay");
+  if (menu) menu.classList.add("active");
+  if (overlay) overlay.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function closeMobileMenu() {
+  const menu = document.getElementById("mobileMenu");
+  const overlay = document.getElementById("mobileOverlay");
+  if (menu) menu.classList.remove("active");
+  if (overlay) overlay.classList.remove("active");
+  document.body.style.overflow = "auto";
+}
+
+function renderGallery() {
+  const grid = document.getElementById("galleryGrid");
+  if (!grid) return;
+  grid.innerHTML = galleryImages.map(img => `<img src="${img}" alt="Galleri">`).join("");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  renderMenu();
+  renderGallery();
+  
+  // Close mobile menu on link click
+  document.querySelectorAll("#mobileMenu a").forEach(link => {
+    link.addEventListener("click", closeMobileMenu);
+  });
+
+  // Handle 'Se hela menyn' link
+  const viewAllLink = document.querySelector(".view-all-link");
+  if (viewAllLink) {
+    viewAllLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      document.getElementById("menuGrid")?.scrollIntoView({ behavior: "smooth" });
+    });
+  }
+
+  // Update arrows on scroll and resize
+  const menuGrid = document.getElementById("menuGrid");
+  if (menuGrid) {
+    menuGrid.addEventListener("scroll", updateScrollArrows);
+    window.addEventListener("resize", updateScrollArrows);
+  }
+});
+
+window.onload = () => {
+  updateScrollArrows();
+};
