@@ -102,7 +102,7 @@
     <!-- Info Card Mobile (About Us) -->
     <section class="section info-section-mobile" id="about">
       <div class="container">
-        <div class="info-card-mobile">
+        <div class="info-card-mobile reveal-scale">
           <div class="info-card-icon">
             <i class="fa-regular fa-heart"></i>
           </div>
@@ -116,7 +116,7 @@
 
     <section class="section menu-section" id="menu">
       <div class="container">
-        <div class="section-title">
+        <div class="section-title reveal">
           <div class="title-with-icon">
             <i class="fa-solid fa-book-open"></i>
             <h2>Meny</h2>
@@ -124,7 +124,7 @@
         </div>
         
         <!-- Universal Visual Grid (Desktop and Mobile) -->
-        <div class="menu-grid-container">
+        <div class="menu-grid-container reveal">
           <button id="leftArrow" class="scroll-arrow left" onclick="scrollMenu('left')" aria-label="Scroll left"><i class="fa-solid fa-chevron-left"></i></button>
           <div class="menu-grid-scroll" id="menuGrid">
             <!-- Rendered by JS -->
@@ -136,11 +136,11 @@
 
     <section id="gallery" class="gallery-section">
       <div class="container">
-        <div class="section-title">
+        <div class="section-title reveal">
           <h2>Galleriet</h2>
           <p class="section-subtitle">En inblick i vår passion för hantverksbageri.</p>
         </div>
-        <div class="gallery-grid-new">
+        <div class="gallery-grid-new reveal">
           <div class="gallery-item item-large"><img src="images/gal-hummus.png" alt="Hummus and Fattoush"></div>
           <div class="gallery-item"><img src="images/cat-manakish.png" alt="Fresh Manakish"></div>
           <div class="gallery-item"><img src="images/gallery-1.png" alt="Beautiful Latte Art"></div>
@@ -155,25 +155,25 @@
 
     <section class="section contact-section" id="contact">
       <div class="container">
-        <div class="section-title">
+        <div class="section-title reveal">
           <h2>Hitta & kontakta oss</h2>
         </div>
         <div class="contact-grid-main">
-          <div class="contact-card">
+          <div class="contact-card reveal-left">
             <i class="fa-solid fa-location-dot"></i>
             <div>
               <h4>Besök oss</h4>
               <p>Irisgatan 80, 70353 Örebro</p>
             </div>
           </div>
-          <div class="contact-card">
+          <div class="contact-card reveal">
             <i class="fa-solid fa-phone"></i>
             <div>
               <h4>Ring oss</h4>
               <p><a href="tel:0707319710">0707 31 97 10</a></p>
             </div>
           </div>
-          <div class="contact-card">
+          <div class="contact-card reveal-right">
             <i class="fa-solid fa-clock"></i>
             <div>
               <h4>Öppettider</h4>
@@ -181,14 +181,14 @@
               <p>Lör-Sön: 10:00 - 16:00</p>
             </div>
           </div>
-          <div class="contact-map-container map-rounded">
+          <div class="contact-map-container map-rounded reveal">
             <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2034.5824581234567!2d15.156789!3d59.278901!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x465c0123456789ab%3A0x123456789abcdef0!2sIrisgatan%2080%2C%20703%2053%20%C3%96rebro!5e0!3m2!1sen!2sse!4v1234567890123" width="100%" height="300" title="Mellringe Cafe Location Map" class="border-zero" allowfullscreen="" loading="lazy"></iframe>
           </div>
         </div>
 
         <!-- Bottom Cards Mobile -->
         <div class="bottom-cards-mobile">
-          <div class="bottom-card">
+          <div class="bottom-card reveal-scale">
             <div class="bottom-card-info">
               <h3>Stora beställningar?</h3>
               <p>Vi tar emot stora beställningar för fester och företag.</p>
@@ -197,7 +197,7 @@
               <i class="fa-solid fa-truck-fast"></i>
             </div>
           </div>
-          <div class="bottom-card">
+          <div class="bottom-card reveal-scale" style="transition-delay: 0.1s;">
             <div class="bottom-card-info">
               <h3>Tårtor vid beställning</h3>
               <p>Beställ din specialgjorda tårta i god tid.</p>
@@ -206,7 +206,7 @@
               <i class="fa-solid fa-cake-candles"></i>
             </div>
           </div>
-          <div class="bottom-card">
+          <div class="bottom-card reveal-scale" style="transition-delay: 0.2s;">
             <div class="bottom-card-info">
               <h3>Allergisk?</h3>
               <p>Fråga gärna vår personal om innehåll och anpassningar.</p>
