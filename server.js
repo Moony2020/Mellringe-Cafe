@@ -13,13 +13,20 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Serve index.html explicitly if running at root
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+// Serve static assets explicitly to keep root folder secure
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/admin.html', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
+app.get('/style.css', (req, res) => res.sendFile(path.join(__dirname, 'style.css')));
+app.get('/script.js', (req, res) => res.sendFile(path.join(__dirname, 'script.js')));
+app.get('/favicon.ico', (req, res) => {
+    const faviconPath = path.join(__dirname, 'favicon.ico');
+    if (fs.existsSync(faviconPath)) {
+        res.sendFile(faviconPath);
+    } else {
+        res.status(204).end();
+    }
 });
 
 // Create uploads folder if it doesn't exist

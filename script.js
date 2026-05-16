@@ -189,10 +189,10 @@ function showCategoryDetails(index) {
 
   modal.innerHTML = `
     <button class="mobile-close" onclick="closeCategoryModal()">&times;</button>
-    <div class="container" style="max-width: 800px; padding-top: 40px;">
-      <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 40px;">
-        <span style="font-size: 50px;">${cat.icon}</span>
-        <h2 style="font-family: var(--font-serif); font-size: 42px;">${cat.category}</h2>
+    <div class="container" style="max-width: 800px; padding-top: 4px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 24px; margin-left: -8px;">
+        <span style="font-size: 50px; margin-left: -2px;">${cat.icon}</span>
+        <h2 style="font-family: var(--font-serif); font-size: clamp(1.55rem, 4.6vw, 2.2rem); line-height: 1.1;">${cat.category}</h2>
       </div>
       <div style="display: flex; flex-direction: column; gap: 20px;">
         ${cat.items.map(item => `
