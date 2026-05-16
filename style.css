@@ -57,8 +57,8 @@ ul {
   left: 0;
   width: 100%;
   background: rgba(234, 220, 191, 0.98);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   z-index: 1000;
   border-bottom: 1px solid rgba(0,0,0,0.05);
 }
@@ -232,6 +232,7 @@ ul {
 
 .btn-hero-outline {
   background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: var(--white);
@@ -697,8 +698,8 @@ ul {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   z-index: 1999;
   display: none;
 }
@@ -807,14 +808,6 @@ ul {
   gap: 5px;
 }
 
-/* Utility Classes */
-.hidden-modal {
-  display: none;
-}
-.border-zero {
-  border: 0;
-  border-radius: 20px;
-}
   .section-title h2 { font-size: 28px; }
   .section-subtitle { font-size: 14px; }
   
@@ -846,4 +839,13 @@ ul {
   .menu-card-mobile { flex: 0 0 180px; }
   .card-info h3 { font-size: 14px; }
   .card-info p { font-size: 12px; }
+}
+
+/* Utility Classes */
+.hidden-modal {
+  display: none;
+}
+.border-zero {
+  border: 0;
+  border-radius: 20px;
 }
