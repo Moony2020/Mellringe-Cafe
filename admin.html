@@ -298,7 +298,7 @@
         const tr = document.createElement('tr');
         const imgPath = item.image ? item.image : '';
         tr.innerHTML = `
-          <td>${imgPath ? \`<img src="\${imgPath}" class="image-preview">\` : '-'}</td>
+          <td>${imgPath ? `<img src="${imgPath}" class="image-preview">` : '-'}</td>
           <td>${item.categoryIcon} ${item.category}</td>
           <td>${item.name}</td>
           <td>${item.price}</td>
@@ -328,7 +328,7 @@
       formData.append('image', imageFile);
     }
 
-    const url = id ? \`/api/menu/\${id}\` : '/api/menu';
+    const url = id ? `/api/menu/${id}` : '/api/menu';
     const method = id ? 'PUT' : 'POST';
 
     try {
@@ -371,7 +371,7 @@
   async function deleteItem(id) {
     if (!confirm('Är du säker på att du vill ta bort denna produkt?')) return;
     try {
-      const res = await fetch(\`/api/menu/\${id}\`, {
+      const res = await fetch(`/api/menu/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': 'Bearer ' + token
