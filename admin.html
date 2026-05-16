@@ -38,7 +38,7 @@
       font-weight: 600;
       margin-bottom: 8px;
     }
-    input[type="text"], input[type="password"], select {
+    input[type="text"], input[type="password"], select, input[type="file"] {
       width: 100%;
       padding: 12px;
       border: 1px solid #ddd;
@@ -84,6 +84,52 @@
     .btn-danger:hover {
       background: #c0392b;
     }
+    .btn-secondary {
+      background: #34495e;
+      margin-right: 10px;
+    }
+    .btn-secondary:hover {
+      background: #2c3e50;
+    }
+    .btn-cancel {
+      background: #ccc;
+      color: #333;
+    }
+    .btn-cancel:hover {
+      background: #bbb;
+    }
+    .w-100 {
+      width: 100%;
+    }
+    .text-center {
+      text-align: center;
+    }
+    .mt-0 {
+      margin-top: 0;
+    }
+    .mb-4 {
+      margin-bottom: 20px;
+    }
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .table-responsive {
+      overflow-x: auto;
+    }
+    .login-wrapper {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .hidden {
+      display: none;
+    }
     #loginSection, #dashboardSection {
       display: none;
     }
@@ -104,40 +150,40 @@
   <h1>Mellringe Café Admin</h1>
 
   <!-- LOGIN SECTION -->
-  <div id="loginSection" class="card active-section" style="max-width: 400px; margin: 0 auto;">
-    <h2 style="text-align: center; margin-top: 0;">Logga in</h2>
+  <div id="loginSection" class="card active-section login-wrapper">
+    <h2 class="text-center mt-0">Logga in</h2>
     <div class="form-group">
-      <label>Användarnamn</label>
-      <input type="text" id="loginUser">
+      <label for="loginUser">Användarnamn</label>
+      <input type="text" id="loginUser" placeholder="Användarnamn" title="Användarnamn">
     </div>
     <div class="form-group">
-      <label>Lösenord</label>
-      <input type="password" id="loginPass">
+      <label for="loginPass">Lösenord</label>
+      <input type="password" id="loginPass" placeholder="Lösenord" title="Lösenord">
     </div>
-    <button onclick="login()" style="width: 100%;">Logga In</button>
+    <button onclick="login()" class="w-100">Logga In</button>
   </div>
 
   <!-- DASHBOARD SECTION -->
   <div id="dashboardSection">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <h2 style="margin: 0;">Hantera Meny</h2>
+    <div class="flex-between mb-4">
+      <h2 class="mt-0">Hantera Meny</h2>
       <div>
-        <button onclick="togglePasswordForm()" style="background: #34495e; margin-right: 10px;">Byt Lösenord</button>
+        <button onclick="togglePasswordForm()" class="btn-secondary">Byt Lösenord</button>
         <button onclick="logout()" class="btn-danger">Logga Ut</button>
       </div>
     </div>
 
     <!-- CHANGE PASSWORD FORM -->
-    <div id="passwordSection" class="card" style="display: none;">
-      <h3 style="margin-top: 0;">Byt Lösenord</h3>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div id="passwordSection" class="card hidden">
+      <h3 class="mt-0">Byt Lösenord</h3>
+      <div class="grid-2">
         <div class="form-group">
-          <label>Gammalt Lösenord</label>
-          <input type="password" id="oldPassword">
+          <label for="oldPassword">Gammalt Lösenord</label>
+          <input type="password" id="oldPassword" placeholder="Gammalt Lösenord" title="Gammalt Lösenord">
         </div>
         <div class="form-group">
-          <label>Nytt Lösenord</label>
-          <input type="password" id="newPassword">
+          <label for="newPassword">Nytt Lösenord</label>
+          <input type="password" id="newPassword" placeholder="Nytt Lösenord" title="Nytt Lösenord">
         </div>
       </div>
       <button onclick="changePassword()">Uppdatera Lösenord</button>
@@ -145,40 +191,40 @@
 
     <!-- ADD ITEM FORM -->
     <div class="card">
-      <h3 style="margin-top: 0;" id="formTitle">Lägg till ny produkt</h3>
+      <h3 class="mt-0" id="formTitle">Lägg till ny produkt</h3>
       <form id="itemForm" onsubmit="saveItem(event)">
         <input type="hidden" id="itemId">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="grid-2">
           <div class="form-group">
-            <label>Kategori</label>
-            <input type="text" id="itemCategory" placeholder="T.ex. Manakish" required>
+            <label for="itemCategory">Kategori</label>
+            <input type="text" id="itemCategory" placeholder="T.ex. Manakish" title="Kategori" required>
           </div>
           <div class="form-group">
-            <label>Kategori Ikon (Emoji)</label>
-            <input type="text" id="itemIcon" placeholder="T.ex. 🫓" required>
+            <label for="itemIcon">Kategori Ikon (Emoji)</label>
+            <input type="text" id="itemIcon" placeholder="T.ex. 🫓" title="Kategori Ikon" required>
           </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="grid-2">
           <div class="form-group">
-            <label>Produktnamn</label>
-            <input type="text" id="itemName" placeholder="T.ex. Zaatar" required>
+            <label for="itemName">Produktnamn</label>
+            <input type="text" id="itemName" placeholder="T.ex. Zaatar" title="Produktnamn" required>
           </div>
           <div class="form-group">
-            <label>Pris (inkl. kr)</label>
-            <input type="text" id="itemPrice" placeholder="T.ex. 20 kr" required>
+            <label for="itemPrice">Pris (inkl. kr)</label>
+            <input type="text" id="itemPrice" placeholder="T.ex. 20 kr" title="Pris" required>
           </div>
         </div>
         <div class="form-group">
-          <label>Bild (Valfritt)</label>
-          <input type="file" id="itemImage" accept="image/*">
+          <label for="itemImage">Bild (Valfritt)</label>
+          <input type="file" id="itemImage" accept="image/*" title="Bild">
         </div>
         <button type="submit" id="saveBtn">Spara Produkt</button>
-        <button type="button" onclick="resetForm()" style="background: #ccc; color: #333;">Avbryt</button>
+        <button type="button" onclick="resetForm()" class="btn-cancel">Avbryt</button>
       </form>
     </div>
 
     <!-- MENU TABLE -->
-    <div class="card" style="overflow-x: auto;">
+    <div class="card table-responsive">
       <table id="menuTable">
         <thead>
           <tr>
@@ -341,7 +387,7 @@
 
   function togglePasswordForm() {
     const section = document.getElementById('passwordSection');
-    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+    section.classList.toggle('hidden');
   }
 
   async function changePassword() {
