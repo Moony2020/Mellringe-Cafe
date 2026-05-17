@@ -155,6 +155,10 @@ ul {
   padding-top: 80px;
 }
 
+.hero .container {
+  width: 100%;
+}
+
 .hero-bg {
   position: absolute;
   top: 0;
