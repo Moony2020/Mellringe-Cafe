@@ -275,7 +275,8 @@ function openMobileMenu() {
   const overlay = document.getElementById("mobileOverlay");
   if (menu) menu.classList.add("active");
   if (overlay) overlay.classList.add("active");
-  document.body.style.overflow = "hidden";
+  document.documentElement.classList.add("mobile-menu-active");
+  document.body.classList.add("mobile-menu-active");
 }
 
 function closeMobileMenu() {
@@ -283,7 +284,8 @@ function closeMobileMenu() {
   const overlay = document.getElementById("mobileOverlay");
   if (menu) menu.classList.remove("active");
   if (overlay) overlay.classList.remove("active");
-  document.body.style.overflow = "auto";
+  document.documentElement.classList.remove("mobile-menu-active");
+  document.body.classList.remove("mobile-menu-active");
 }
 
 function renderGallery() {
