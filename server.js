@@ -111,6 +111,17 @@ const connectDB = async (req, res, next) => {
 
         // Seed missing defaults
         await seedMissingDefaultMenuItems();
+        
+        // Ensure "Smörgåsar" starting price is "Från 35 kr" in MongoDB
+        try {
+            await mongoose.models.MenuItem.updateMany(
+                { category: { $in: ["Smörgåsar", "Smörgås"] } },
+                { $set: { categoryPrice: "Från 35 kr" } }
+            );
+        } catch (dbErr) {
+            console.warn('Could not force update Smörgåsar price in DB:', dbErr.message);
+        }
+        
         next();
     } catch (err) {
         console.error('Database connection failed in middleware:', err.message);

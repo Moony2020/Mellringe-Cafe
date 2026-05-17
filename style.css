@@ -968,6 +968,7 @@ body.mobile-menu-active {
   .nav-container { height: 60px; }
   .section-title h2 { font-size: 22px !important; }
   .menu-card-mobile { flex: 0 0 160px; padding: 8px; }
+  .menu-grid-scroll { gap: 8px !important; padding: 10px 0 20px !important; }
   .card-info h3 { font-size: 16px; }
   .card-info p { font-size: 13.5px; }
 
