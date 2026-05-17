@@ -275,29 +275,168 @@ function renderGallery() {
 }
 
 let activeMenuData = menuData; // Default to hardcoded
+let latestMenuSignature = JSON.stringify(menuData);
 
 async function fetchMenuData() {
   try {
     const res = await fetch('/api/menu');
     const items = await res.json();
-    if (items && items.length > 0) {
-      const grouped = {};
+    const baseMenu = menuData.map(cat => ({
+      category: cat.category,
+      icon: cat.icon,
+      price: cat.price,
+      image: cat.image,
+      items: cat.items.map(([name, price]) => [name, price])
+    }));
+
+    const byKey = {};
+    const order = [];
+    const keyOf = (value) => String(value || "").trim().toLowerCase();
+
+    baseMenu.forEach(cat => {
+      const key = keyOf(cat.category);
+      byKey[key] = cat;
+      order.push(key);
+    });
+
+    const baseCategoryKeys = new Set(order);
+
+    if (Array.isArray(items)) {
       items.forEach(item => {
-        if (!grouped[item.category]) {
-          grouped[item.category] = {
-            category: item.category,
+        const categoryName = String(item.category || "").trim();
+        if (!categoryName) return;
+
+        const key = keyOf(categoryName);
+        if (!byKey[key]) {
+          byKey[key] = {
+            category: categoryName,
             icon: item.categoryIcon || '🍽️',
-            price: "Från " + item.price,
-            image: item.image || "images/cat-manakish.png",
+            price: item.categoryPrice || (item.price ? `Från ${item.price}` : 'Se meny'),
+            image: item.categoryImage || item.image || "images/cat-manakish.png",
             items: []
           };
+          order.push(key);
         }
-        grouped[item.category].items.push([item.name, item.price]);
+
+        if (item.categoryIcon && (!byKey[key].icon || byKey[key].icon === '🍽️')) {
+          byKey[key].icon = item.categoryIcon;
+        }
+
+        if (!baseCategoryKeys.has(key) && item.categoryImage) {
+          byKey[key].image = item.categoryImage;
+        } else if (!baseCategoryKeys.has(key) && item.image && (!byKey[key].image || byKey[key].image.includes('cat-manakish.png'))) {
+          byKey[key].image = item.image;
+        }
+
+        if (!baseCategoryKeys.has(key) && item.categoryPrice) {
+          byKey[key].price = item.categoryPrice;
+        }
+
+        const itemName = String(item.name || "").trim();
+        const itemPrice = String(item.price || "").trim();
+        if (!itemName || !itemPrice) return;
+
+        const existingIndex = byKey[key].items.findIndex(([name]) =>
+          String(name).trim().toLowerCase() === itemName.toLowerCase()
+        );
+
+        if (existingIndex >= 0) {
+          byKey[key].items[existingIndex][1] = itemPrice;
+        } else {
+          byKey[key].items.push([itemName, itemPrice]);
+        }
       });
-      activeMenuData = Object.values(grouped);
     }
+
+    activeMenuData = order.map(key => byKey[key]);
+    latestMenuSignature = JSON.stringify(activeMenuData);
   } catch (err) {
     console.log("Could not fetch from API, using default menuData");
+  }
+}
+
+async function refreshMenuIfChanged() {
+  try {
+    const res = await fetch('/api/menu');
+    const items = await res.json();
+
+    const baseMenu = menuData.map(cat => ({
+      category: cat.category,
+      icon: cat.icon,
+      price: cat.price,
+      image: cat.image,
+      items: cat.items.map(([name, price]) => [name, price])
+    }));
+
+    const byKey = {};
+    const order = [];
+    const keyOf = (value) => String(value || "").trim().toLowerCase();
+
+    baseMenu.forEach(cat => {
+      const key = keyOf(cat.category);
+      byKey[key] = cat;
+      order.push(key);
+    });
+
+    const baseCategoryKeys = new Set(order);
+
+    if (Array.isArray(items)) {
+      items.forEach(item => {
+        const categoryName = String(item.category || "").trim();
+        if (!categoryName) return;
+
+        const key = keyOf(categoryName);
+        if (!byKey[key]) {
+          byKey[key] = {
+            category: categoryName,
+            icon: item.categoryIcon || '🍽️',
+            price: item.categoryPrice || (item.price ? `Från ${item.price}` : 'Se meny'),
+            image: item.categoryImage || item.image || "images/cat-manakish.png",
+            items: []
+          };
+          order.push(key);
+        }
+
+        if (item.categoryIcon && (!byKey[key].icon || byKey[key].icon === '🍽️')) {
+          byKey[key].icon = item.categoryIcon;
+        }
+
+        if (!baseCategoryKeys.has(key) && item.categoryImage) {
+          byKey[key].image = item.categoryImage;
+        } else if (!baseCategoryKeys.has(key) && item.image && (!byKey[key].image || byKey[key].image.includes('cat-manakish.png'))) {
+          byKey[key].image = item.image;
+        }
+
+        if (!baseCategoryKeys.has(key) && item.categoryPrice) {
+          byKey[key].price = item.categoryPrice;
+        }
+
+        const itemName = String(item.name || "").trim();
+        const itemPrice = String(item.price || "").trim();
+        if (!itemName || !itemPrice) return;
+
+        const existingIndex = byKey[key].items.findIndex(([name]) =>
+          String(name).trim().toLowerCase() === itemName.toLowerCase()
+        );
+
+        if (existingIndex >= 0) {
+          byKey[key].items[existingIndex][1] = itemPrice;
+        } else {
+          byKey[key].items.push([itemName, itemPrice]);
+        }
+      });
+    }
+
+    const nextData = order.map(key => byKey[key]);
+    const nextSignature = JSON.stringify(nextData);
+    if (nextSignature !== latestMenuSignature) {
+      activeMenuData = nextData;
+      latestMenuSignature = nextSignature;
+      renderMenu();
+      updateScrollArrows();
+    }
+  } catch (err) {
+    // Silent for background refresh
   }
 }
 
@@ -346,6 +485,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach((el) => {
     observer.observe(el);
   });
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'mellringe_menu_last_update') {
+      refreshMenuIfChanged();
+    }
+  });
+
+  setInterval(refreshMenuIfChanged, 15000);
 });
 
 window.onload = () => {

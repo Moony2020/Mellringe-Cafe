@@ -37,10 +37,61 @@
     .form-group {
       margin-bottom: 20px;
     }
+    .icon-field-offset {
+      margin-top: 28px;
+    }
+    #itemCategorySelect {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      padding-right: 44px;
+      background-image:
+        linear-gradient(45deg, transparent 50%, #666 50%),
+        linear-gradient(135deg, #666 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) calc(50% - 2px),
+        calc(100% - 12px) calc(50% - 2px);
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+    }
+    .password-field {
+      position: relative;
+    }
+    .password-field input {
+      padding-right: 44px;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #444;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .toggle-password:hover {
+      background: #f3f3f3;
+    }
     label {
       display: block;
       font-weight: 600;
       margin-bottom: 8px;
+    }
+    small {
+      display: block;
+      margin-top: -2px;
+      margin-bottom: 8px;
+      color: #666;
+      font-size: 12px;
     }
     input[type="text"], input[type="password"], select, input[type="file"] {
       width: 100%;
@@ -95,6 +146,13 @@
     .btn-secondary:hover {
       background: #2c3e50;
     }
+    .btn-sync {
+      background: #2f7d56;
+      margin-right: 10px;
+    }
+    .btn-sync:hover {
+      background: #256346;
+    }
     .btn-cancel {
       background: #ccc;
       color: #333;
@@ -130,6 +188,10 @@
         grid-template-columns: 1fr;
       }
 
+      .icon-field-offset {
+        margin-top: 0;
+      }
+
       .flex-between {
         flex-direction: column;
         align-items: flex-start;
@@ -146,6 +208,9 @@
     .hidden {
       display: none;
     }
+    .inline-hidden {
+      display: none;
+    }
     #loginSection, #dashboardSection {
       display: none;
     }
@@ -158,6 +223,61 @@
       object-fit: cover;
       border-radius: 8px;
     }
+    .status-message {
+      margin-top: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .status-success {
+      color: #1f7a3d;
+    }
+    .status-error {
+      color: #b42318;
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(20, 16, 13, 0.45);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-card {
+      width: min(460px, 100%);
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+      padding: 20px;
+    }
+    .modal-title {
+      margin: 0 0 8px;
+      color: #2D211B;
+      font-size: 24px;
+    }
+    .modal-text {
+      margin: 0 0 20px;
+      color: #444;
+      line-height: 1.5;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .btn-outline {
+      background: #fff;
+      color: #2D211B;
+      border: 1px solid #d6d6d6;
+    }
+    .btn-outline:hover {
+      background: #f6f6f6;
+    }
   </style>
 </head>
 <body>
@@ -168,15 +288,20 @@
   <!-- LOGIN SECTION -->
   <div id="loginSection" class="card active-section login-wrapper">
     <h2 class="text-center mt-0">Logga in</h2>
-    <div class="form-group">
-      <label for="loginUser">Användarnamn</label>
-      <input type="text" id="loginUser" placeholder="Användarnamn" title="Användarnamn">
-    </div>
-    <div class="form-group">
-      <label for="loginPass">Lösenord</label>
-      <input type="password" id="loginPass" placeholder="Lösenord" title="Lösenord">
-    </div>
-    <button onclick="login()" class="w-100">Logga In</button>
+    <form id="loginForm" onsubmit="login(event)">
+      <div class="form-group">
+        <label for="loginUser">Användarnamn</label>
+        <input type="text" id="loginUser" placeholder="Användarnamn" title="Användarnamn">
+      </div>
+      <div class="form-group">
+        <label for="loginPass">Lösenord</label>
+        <div class="password-field">
+          <input type="password" id="loginPass" placeholder="Lösenord" title="Lösenord">
+          <button type="button" class="toggle-password" onclick="togglePasswordVisibility('loginPass', this)" aria-label="Visa eller dölj lösenord">👁</button>
+        </div>
+      </div>
+      <button type="submit" class="w-100">Logga In</button>
+    </form>
   </div>
 
   <!-- DASHBOARD SECTION -->
@@ -184,6 +309,7 @@
     <div class="flex-between mb-4">
       <h2 class="mt-0">Hantera Meny</h2>
       <div>
+        <button onclick="syncDefaultMenu()" class="btn-sync">Synka Standardmeny</button>
         <button onclick="togglePasswordForm()" class="btn-secondary">Byt Lösenord</button>
         <button onclick="logout()" class="btn-danger">Logga Ut</button>
       </div>
@@ -195,14 +321,21 @@
       <div class="grid-2">
         <div class="form-group">
           <label for="oldPassword">Gammalt Lösenord</label>
-          <input type="password" id="oldPassword" placeholder="Gammalt Lösenord" title="Gammalt Lösenord">
+          <div class="password-field">
+            <input type="password" id="oldPassword" placeholder="Gammalt Lösenord" title="Gammalt Lösenord">
+            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('oldPassword', this)" aria-label="Visa eller dölj gammalt lösenord">👁</button>
+          </div>
         </div>
         <div class="form-group">
           <label for="newPassword">Nytt Lösenord</label>
-          <input type="password" id="newPassword" placeholder="Nytt Lösenord" title="Nytt Lösenord">
+          <div class="password-field">
+            <input type="password" id="newPassword" placeholder="Nytt Lösenord" title="Nytt Lösenord">
+            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('newPassword', this)" aria-label="Visa eller dölj nytt lösenord">👁</button>
+          </div>
         </div>
       </div>
       <button onclick="changePassword()">Uppdatera Lösenord</button>
+      <div id="passwordStatus" class="status-message"></div>
     </div>
 
     <!-- ADD ITEM FORM -->
@@ -212,12 +345,27 @@
         <input type="hidden" id="itemId">
         <div class="grid-2">
           <div class="form-group">
-            <label for="itemCategory">Kategori</label>
-            <input type="text" id="itemCategory" placeholder="T.ex. Manakish" title="Kategori" required>
+            <label for="itemCategorySelect">Kategori</label>
+            <small>Välj befintlig kategori eller skapa en ny.</small>
+            <select id="itemCategorySelect" title="Kategori" onchange="handleCategoryModeChange()" required>
+              <option value="">Välj kategori</option>
+              <option value="__new__">+ Ny kategori</option>
+            </select>
+            <input class="inline-hidden" type="text" id="itemCategoryNew" placeholder="Namn på ny kategori" title="Ny kategori">
+          </div>
+          <div class="form-group icon-field-offset">
+            <label for="itemIcon">Kategori Ikon (Emoji)</label>
+            <input type="text" id="itemIcon" placeholder="T.ex. 🫓 (valfritt vid befintlig kategori)" title="Kategori Ikon">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="itemCategoryImage">Kategori-bild (URL)</label>
+            <input type="text" id="itemCategoryImage" placeholder="T.ex. /uploads/kakor.jpg eller images/cat-pastries.png" title="Kategori bild">
           </div>
           <div class="form-group">
-            <label for="itemIcon">Kategori Ikon (Emoji)</label>
-            <input type="text" id="itemIcon" placeholder="T.ex. 🫓" title="Kategori Ikon" required>
+            <label for="itemCategoryPrice">Kategori pristext</label>
+            <input type="text" id="itemCategoryPrice" placeholder="T.ex. Från 15 kr" title="Kategori pristext">
           </div>
         </div>
         <div class="grid-2">
@@ -260,14 +408,165 @@
   </div>
 </div>
 
+<div id="appModal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-card">
+    <h4 id="appModalTitle" class="modal-title">Meddelande</h4>
+    <p id="appModalText" class="modal-text"></p>
+    <div class="modal-actions">
+      <button type="button" id="appModalCancel" class="btn-outline">Avbryt</button>
+      <button type="button" id="appModalConfirm">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
   let token = localStorage.getItem('adminToken');
+  let menuItemsCache = [];
+
+  function setPasswordStatus(message, type) {
+    const el = document.getElementById('passwordStatus');
+    if (!el) return;
+    el.className = 'status-message ' + (type === 'error' ? 'status-error' : 'status-success');
+    el.textContent = message || '';
+  }
+
+  function notifyMenuUpdated() {
+    try {
+      localStorage.setItem('mellringe_menu_last_update', String(Date.now()));
+    } catch (e) {
+      // Ignore storage errors
+    }
+  }
+
+  function showModal(options) {
+    return new Promise((resolve) => {
+      const cfg = options || {};
+      const overlay = document.getElementById('appModal');
+      const title = document.getElementById('appModalTitle');
+      const text = document.getElementById('appModalText');
+      const cancelBtn = document.getElementById('appModalCancel');
+      const confirmBtn = document.getElementById('appModalConfirm');
+
+      title.textContent = cfg.title || 'Meddelande';
+      text.textContent = cfg.message || '';
+      confirmBtn.textContent = cfg.confirmText || 'OK';
+      cancelBtn.textContent = cfg.cancelText || 'Avbryt';
+      cancelBtn.style.display = cfg.showCancel ? 'inline-flex' : 'none';
+
+      const close = (result) => {
+        overlay.classList.remove('active');
+        confirmBtn.onclick = null;
+        cancelBtn.onclick = null;
+        overlay.onclick = null;
+        resolve(result);
+      };
+
+      confirmBtn.onclick = () => close(true);
+      cancelBtn.onclick = () => close(false);
+      overlay.onclick = (e) => {
+        if (e.target === overlay && cfg.showCancel) close(false);
+      };
+
+      overlay.classList.add('active');
+    });
+  }
+
+  async function showAlertModal(message, title) {
+    await showModal({ title: title || 'Meddelande', message, confirmText: 'OK', showCancel: false });
+  }
+
+  async function showConfirmModal(message, title) {
+    return showModal({ title: title || 'Bekräfta', message, confirmText: 'Ja', cancelText: 'Nej', showCancel: true });
+  }
+
+  function togglePasswordVisibility(inputId, button) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    if (button) button.textContent = isPassword ? '🙈' : '👁';
+  }
+
+  function getUniqueCategories(items) {
+    const seen = new Set();
+    const result = [];
+    (Array.isArray(items) ? items : []).forEach(item => {
+      const raw = String(item.category || '').trim();
+      const key = raw.toLowerCase();
+      if (!raw || seen.has(key)) return;
+      seen.add(key);
+      result.push(raw);
+    });
+    return result;
+  }
+
+  function refreshCategoryOptions(selectedValue) {
+    const select = document.getElementById('itemCategorySelect');
+    if (!select) return;
+
+    const categories = getUniqueCategories(menuItemsCache);
+    const current = selectedValue || select.value;
+
+    select.innerHTML = '<option value="">Välj kategori</option>';
+    categories.forEach(category => {
+      const option = document.createElement('option');
+      option.value = category;
+      option.textContent = category;
+      select.appendChild(option);
+    });
+
+    const createNew = document.createElement('option');
+    createNew.value = '__new__';
+    createNew.textContent = '+ Ny kategori';
+    select.appendChild(createNew);
+
+    if (current) {
+      if (categories.some(c => c.toLowerCase() === current.toLowerCase())) {
+        select.value = categories.find(c => c.toLowerCase() === current.toLowerCase());
+      } else {
+        select.value = '__new__';
+        const newInput = document.getElementById('itemCategoryNew');
+        if (newInput) newInput.value = current;
+      }
+    }
+
+    handleCategoryModeChange();
+  }
+
+  function handleCategoryModeChange() {
+    const select = document.getElementById('itemCategorySelect');
+    const newInput = document.getElementById('itemCategoryNew');
+    if (!select || !newInput) return;
+
+    const isNew = select.value === '__new__';
+    newInput.classList.toggle('inline-hidden', !isNew);
+    newInput.required = isNew;
+    if (!isNew) {
+      newInput.value = '';
+      fillCategoryDefaults(select.value);
+    } else {
+      document.getElementById('itemCategoryImage').value = '';
+      document.getElementById('itemCategoryPrice').value = '';
+    }
+  }
+
+  function fillCategoryDefaults(categoryName) {
+    const match = menuItemsCache.find(item => String(item.category || '').trim().toLowerCase() === String(categoryName || '').trim().toLowerCase());
+    if (!match) return;
+
+    if (!document.getElementById('itemIcon').value) {
+      document.getElementById('itemIcon').value = match.categoryIcon || '';
+    }
+    document.getElementById('itemCategoryImage').value = match.categoryImage || '';
+    document.getElementById('itemCategoryPrice').value = match.categoryPrice || '';
+  }
 
   if (token) {
     showDashboard();
   }
 
-  async function login() {
+  async function login(event) {
+    if (event) event.preventDefault();
     const user = document.getElementById('loginUser').value;
     const pass = document.getElementById('loginPass').value;
     
@@ -283,10 +582,10 @@
         token = data.token;
         showDashboard();
       } else {
-        alert('Fel användarnamn eller lösenord');
+        await showAlertModal('Fel användarnamn eller lösenord. Kontrollera uppgifterna och försök igen.', 'Inloggning misslyckades');
       }
     } catch (e) {
-      alert('Kunde inte ansluta till servern');
+      await showAlertModal('Kunde inte ansluta till servern. Kontrollera att servern är igång och försök igen.', 'Anslutningsfel');
     }
   }
 
@@ -295,6 +594,31 @@
     token = null;
     document.getElementById('loginSection').classList.add('active-section');
     document.getElementById('dashboardSection').classList.remove('active-section');
+  }
+
+  async function syncDefaultMenu() {
+    const shouldSync = await showConfirmModal('Detta lagger till saknade standardartiklar utan att radera dina egna. Vill du fortsatta?', 'Synka standardmeny');
+    if (!shouldSync) return;
+
+    try {
+      const res = await fetch('/api/menu/sync-defaults', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        await showAlertModal(data.message || data.error || 'Kunde inte synka standardmenyn.', 'Synk misslyckades');
+        return;
+      }
+
+      await loadMenu();
+      await showAlertModal(data.message || 'Synk klar.', 'Klar');
+    } catch (err) {
+      await showAlertModal('Kunde inte ansluta till servern.', 'Anslutningsfel');
+    }
   }
 
   function showDashboard() {
@@ -307,10 +631,12 @@
     try {
       const res = await fetch('/api/menu');
       const items = await res.json();
+      menuItemsCache = Array.isArray(items) ? items : [];
+      refreshCategoryOptions();
       const tbody = document.getElementById('menuList');
       tbody.innerHTML = '';
       
-      items.forEach(item => {
+      menuItemsCache.forEach(item => {
         const tr = document.createElement('tr');
         const imgPath = item.image ? item.image : '';
         tr.innerHTML = `
@@ -333,9 +659,26 @@
   async function saveItem(e) {
     e.preventDefault();
     const id = document.getElementById('itemId').value;
+    const categorySelect = document.getElementById('itemCategorySelect').value;
+    const categoryNew = document.getElementById('itemCategoryNew').value;
+    const categoryValue = (categorySelect === '__new__' ? categoryNew : categorySelect).trim();
+    const iconValue = document.getElementById('itemIcon').value;
+    const categoryImageValue = document.getElementById('itemCategoryImage').value.trim();
+    const categoryPriceValue = document.getElementById('itemCategoryPrice').value.trim();
+
+    if (!categoryValue) {
+      await showAlertModal('Välj kategori eller skriv ny kategori.', 'Kategori saknas');
+      return;
+    }
+
+    const normalizedCategory = String(categoryValue || '').trim().toLowerCase();
+    const matchedCategory = menuItemsCache.find(item => String(item.category || '').trim().toLowerCase() === normalizedCategory);
+
     const formData = new FormData();
-    formData.append('category', document.getElementById('itemCategory').value);
-    formData.append('categoryIcon', document.getElementById('itemIcon').value);
+    formData.append('category', categoryValue);
+    formData.append('categoryIcon', iconValue || (matchedCategory?.categoryIcon || ''));
+    formData.append('categoryImage', categoryImageValue || (matchedCategory?.categoryImage || ''));
+    formData.append('categoryPrice', categoryPriceValue || (matchedCategory?.categoryPrice || `Från ${document.getElementById('itemPrice').value}`));
     formData.append('name', document.getElementById('itemName').value);
     formData.append('price', document.getElementById('itemPrice').value);
     
@@ -356,10 +699,16 @@
         body: formData
       });
       if (res.ok) {
+        const successMessage = id
+          ? 'Produkten uppdaterades framgangsrikt.'
+          : 'Produkten lades till framgangsrikt.';
         resetForm();
-        loadMenu();
+        await loadMenu();
+        notifyMenuUpdated();
+        await showAlertModal(successMessage, 'Klar');
       } else {
-        alert('Ett fel uppstod när produkten skulle sparas');
+        const data = await res.json().catch(() => ({}));
+        await showAlertModal(data.message || data.error || 'Ett fel uppstod när produkten skulle sparas', 'Kunde inte spara');
       }
     } catch (err) {
       console.error(err);
@@ -369,8 +718,10 @@
   function editItem(item) {
     document.getElementById('formTitle').innerText = 'Ändra produkt';
     document.getElementById('itemId').value = item._id;
-    document.getElementById('itemCategory').value = item.category;
+    refreshCategoryOptions(item.category);
     document.getElementById('itemIcon').value = item.categoryIcon;
+    document.getElementById('itemCategoryImage').value = item.categoryImage || '';
+    document.getElementById('itemCategoryPrice').value = item.categoryPrice || '';
     document.getElementById('itemName').value = item.name;
     document.getElementById('itemPrice').value = item.price;
     document.getElementById('saveBtn').innerText = 'Uppdatera';
@@ -382,10 +733,12 @@
     document.getElementById('itemId').value = '';
     document.getElementById('formTitle').innerText = 'Lägg till ny produkt';
     document.getElementById('saveBtn').innerText = 'Spara Produkt';
+    refreshCategoryOptions();
   }
 
   async function deleteItem(id) {
-    if (!confirm('Är du säker på att du vill ta bort denna produkt?')) return;
+    const shouldDelete = await showConfirmModal('Är du säker på att du vill ta bort denna produkt?', 'Ta bort produkt');
+    if (!shouldDelete) return;
     try {
       const res = await fetch(`/api/menu/${id}`, {
         method: 'DELETE',
@@ -394,22 +747,33 @@
         }
       });
       if (res.ok) {
-        loadMenu();
+        await loadMenu();
+        notifyMenuUpdated();
+        await showAlertModal('Produkten togs bort framgangsrikt.', 'Borttagen');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        await showAlertModal(data.message || data.error || 'Kunde inte ta bort produkten.', 'Fel vid borttagning');
       }
     } catch (e) {
-      console.error(e);
+      await showAlertModal('Kunde inte ansluta till servern.', 'Anslutningsfel');
     }
   }
 
   function togglePasswordForm() {
     const section = document.getElementById('passwordSection');
     section.classList.toggle('hidden');
+    if (section.classList.contains('hidden')) {
+      setPasswordStatus('', 'success');
+    }
   }
 
   async function changePassword() {
     const oldPassword = document.getElementById('oldPassword').value;
     const newPassword = document.getElementById('newPassword').value;
-    if (!oldPassword || !newPassword) return alert('Fyll i båda fälten');
+    if (!oldPassword || !newPassword) {
+      setPasswordStatus('Fyll i både gammalt och nytt lösenord.', 'error');
+      return;
+    }
 
     try {
       const res = await fetch('/api/auth/password', {
@@ -422,15 +786,14 @@
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Lösenordet har ändrats framgångsrikt!');
+        setPasswordStatus('Losenordet har uppdaterats.', 'success');
         document.getElementById('oldPassword').value = '';
         document.getElementById('newPassword').value = '';
-        togglePasswordForm();
       } else {
-        alert(data.message || 'Ett fel uppstod');
+        setPasswordStatus(data.message || 'Kunde inte uppdatera losenordet.', 'error');
       }
     } catch (e) {
-      alert('Kunde inte ansluta till servern');
+      setPasswordStatus('Kunde inte ansluta till servern.', 'error');
     }
   }
 </script>

@@ -34,15 +34,36 @@ if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
     fs.mkdirSync(path.join(__dirname, 'uploads'));
 }
 
-// Set up Multer for image uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
+const ADMIN_AUTH_STORE_PATH = path.join(__dirname, 'admin-auth.json');
+
+function getLocalAdminAuth() {
+    const fallback = {
+        username: process.env.ADMIN_USERNAME,
+        password: process.env.ADMIN_PASSWORD
+    };
+
+    try {
+        if (!fs.existsSync(ADMIN_AUTH_STORE_PATH)) {
+            return fallback;
+        }
+        const raw = fs.readFileSync(ADMIN_AUTH_STORE_PATH, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (!parsed?.username || !parsed?.password) {
+            return fallback;
+        }
+        return parsed;
+    } catch (err) {
+        console.warn('Could not read local admin auth store:', err.message);
+        return fallback;
     }
-});
+}
+
+function saveLocalAdminAuth(data) {
+    fs.writeFileSync(ADMIN_AUTH_STORE_PATH, JSON.stringify(data, null, 2), 'utf8');
+}
+
+// Set up Multer for memory storage (Netlify Serverless compatible)
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // Admin Schema
@@ -65,6 +86,8 @@ if (process.env.MONGO_URI) {
                 await Admin.create({ username: process.env.ADMIN_USERNAME, password: hashedPassword });
                 console.log('Admin account created from .env');
             }
+
+            await seedMissingDefaultMenuItems();
         })
         .catch(err => console.log(err));
 } else {
@@ -76,11 +99,82 @@ const MenuItemSchema = new mongoose.Schema({
     category: { type: String, required: true }, // e.g., 'Manakish', 'Veg'
     categoryIcon: { type: String }, // e.g., '🫓'
     categoryImage: { type: String }, // Optional header image for category
+    categoryPrice: { type: String }, // e.g., 'Från 15 kr'
     name: { type: String, required: true }, // e.g., 'Zaatar'
     price: { type: String, required: true }, // e.g., '20 kr'
     image: { type: String } // Optional specific image for the item
 });
 const MenuItem = mongoose.model('MenuItem', MenuItemSchema);
+
+function loadDefaultMenuItemsForSeed() {
+    try {
+        const dataPath = path.join(__dirname, 'data-default.json');
+        if (!fs.existsSync(dataPath)) return [];
+
+        const raw = fs.readFileSync(dataPath, 'utf8');
+        const parsed = JSON.parse(raw);
+        const categories = Array.isArray(parsed?.menu) ? parsed.menu : [];
+
+        const items = [];
+        categories.forEach((cat) => {
+            const categoryName = String(cat?.title || '').trim();
+            if (!categoryName) return;
+
+            const categoryIcon = cat?.icon || '🍽️';
+            const categoryImage = cat?.image || null;
+            const categoryPrice = cat?.price || null;
+            const categoryItems = Array.isArray(cat?.items) ? cat.items : [];
+
+            categoryItems.forEach((entry) => {
+                if (!Array.isArray(entry) || entry.length < 2) return;
+
+                const name = String(entry[0] || '').trim();
+                const price = String(entry[1] || '').trim();
+                if (!name || !price) return;
+
+                items.push({
+                    category: categoryName,
+                    categoryIcon,
+                    categoryImage,
+                    categoryPrice,
+                    name,
+                    price,
+                    image: null
+                });
+            });
+        });
+
+        return items;
+    } catch (err) {
+        console.warn('Could not load default menu seed data:', err.message);
+        return [];
+    }
+}
+
+async function seedMissingDefaultMenuItems() {
+    const seedItems = loadDefaultMenuItemsForSeed();
+    if (seedItems.length === 0) {
+        console.warn('Menu seed skipped: no default menu items found.');
+        return { insertedCount: 0, totalDefaults: 0 };
+    }
+
+    const existingItems = await MenuItem.find({}, { category: 1, name: 1, price: 1 }).lean();
+    const existingKeys = new Set(
+        existingItems.map((item) => `${String(item.category || '').trim().toLowerCase()}::${String(item.name || '').trim().toLowerCase()}`)
+    );
+
+    const missing = seedItems.filter((item) => {
+        const key = `${String(item.category || '').trim().toLowerCase()}::${String(item.name || '').trim().toLowerCase()}`;
+        return !existingKeys.has(key);
+    });
+
+    if (missing.length > 0) {
+        await MenuItem.insertMany(missing);
+        console.log(`Seeded ${missing.length} missing default menu items into MongoDB.`);
+    }
+
+    return { insertedCount: missing.length, totalDefaults: seedItems.length };
+}
 
 // Admin Auth Middleware
 const verifyAdmin = (req, res, next) => {
@@ -105,8 +199,8 @@ app.post('/api/auth/login', async (req, res) => {
         const { username, password } = req.body;
         
         if (!process.env.MONGO_URI) {
-            // Fallback to .env if DB not connected
-            if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+            const localAuth = getLocalAdminAuth();
+            if (username === localAuth.username && password === localAuth.password) {
                 const token = jwt.sign({ username, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1d' });
                 return res.json({ token });
             }
@@ -129,9 +223,26 @@ app.post('/api/auth/login', async (req, res) => {
 // Change Password
 app.put('/api/auth/password', verifyAdmin, async (req, res) => {
     try {
-        if (!process.env.MONGO_URI) return res.status(400).json({ message: 'Database required to change password' });
-
         const { oldPassword, newPassword } = req.body;
+
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({ message: 'Old and new password are required' });
+        }
+
+        if (!process.env.MONGO_URI) {
+            const localAuth = getLocalAdminAuth();
+            if (oldPassword !== localAuth.password) {
+                return res.status(400).json({ message: 'Felaktigt gammalt lösenord' });
+            }
+
+            saveLocalAdminAuth({
+                username: localAuth.username,
+                password: newPassword
+            });
+
+            return res.json({ message: 'Lösenord ändrat' });
+        }
+
         const admin = await Admin.findOne({ username: req.user.username });
 
         const isMatch = await bcrypt.compare(oldPassword, admin.password);
@@ -160,21 +271,58 @@ app.get('/api/menu', async (req, res) => {
     }
 });
 
+// 2.1 Sync missing defaults into DB (Admin only)
+app.post('/api/menu/sync-defaults', verifyAdmin, async (req, res) => {
+    try {
+        if (!process.env.MONGO_URI) {
+            return res.status(400).json({ message: 'Databas krävs för att synka standardmenyn.' });
+        }
+
+        const result = await seedMissingDefaultMenuItems();
+        return res.json({
+            message: `Synk klart. Lade till ${result.insertedCount} saknade standardartiklar.`,
+            insertedCount: result.insertedCount,
+            totalDefaults: result.totalDefaults
+        });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
 // 3. Add Menu Item (Admin only)
 app.post('/api/menu', verifyAdmin, upload.single('image'), async (req, res) => {
     try {
-        const { category, categoryIcon, name, price } = req.body;
-        const imagePath = req.file ? '/uploads/' + req.file.filename : null;
+        const { category, categoryIcon, categoryImage, categoryPrice, name, price } = req.body;
+        let imagePath = null;
+        if (req.file) {
+            imagePath = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+        }
+
+        const normalizedCategory = String(category || '').trim();
+        const existingCategoryItem = await MenuItem.findOne({ category: new RegExp(`^${normalizedCategory.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
 
         const newItem = new MenuItem({
-            category,
-            categoryIcon: categoryIcon || '🍽️',
+            category: normalizedCategory,
+            categoryIcon: categoryIcon || existingCategoryItem?.categoryIcon || '🍽️',
+            categoryImage: categoryImage || existingCategoryItem?.categoryImage || null,
+            categoryPrice: categoryPrice || existingCategoryItem?.categoryPrice || `Från ${price}`,
             name,
             price,
             image: imagePath
         });
 
         await newItem.save();
+
+        if (categoryImage || categoryPrice || categoryIcon) {
+            const updateCategoryFields = {};
+            if (categoryIcon) updateCategoryFields.categoryIcon = categoryIcon;
+            if (categoryImage) updateCategoryFields.categoryImage = categoryImage;
+            if (categoryPrice) updateCategoryFields.categoryPrice = categoryPrice;
+            if (Object.keys(updateCategoryFields).length > 0) {
+                await MenuItem.updateMany({ category: newItem.category }, { $set: updateCategoryFields });
+            }
+        }
+
         res.json(newItem);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -184,13 +332,24 @@ app.post('/api/menu', verifyAdmin, upload.single('image'), async (req, res) => {
 // 4. Update Menu Item (Admin only)
 app.put('/api/menu/:id', verifyAdmin, upload.single('image'), async (req, res) => {
     try {
-        const { category, categoryIcon, name, price } = req.body;
-        const updateData = { category, categoryIcon, name, price };
+        const { category, categoryIcon, categoryImage, categoryPrice, name, price } = req.body;
+        const updateData = { category, categoryIcon, categoryImage, categoryPrice, name, price };
         if (req.file) {
-            updateData.image = '/uploads/' + req.file.filename;
+            updateData.image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
         }
 
         const updatedItem = await MenuItem.findByIdAndUpdate(req.params.id, updateData, { new: true });
+
+        if (updatedItem && (categoryIcon || categoryImage || categoryPrice)) {
+            const updateCategoryFields = {};
+            if (categoryIcon) updateCategoryFields.categoryIcon = categoryIcon;
+            if (categoryImage) updateCategoryFields.categoryImage = categoryImage;
+            if (categoryPrice) updateCategoryFields.categoryPrice = categoryPrice;
+            if (Object.keys(updateCategoryFields).length > 0) {
+                await MenuItem.updateMany({ category: updatedItem.category }, { $set: updateCategoryFields });
+            }
+        }
+
         res.json(updatedItem);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -207,5 +366,9 @@ app.delete('/api/menu/:id', verifyAdmin, async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+if (require.main === module) {
+    const PORT = process.env.PORT || 5005;
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+module.exports = app;
