@@ -153,6 +153,10 @@ ul {
   justify-content: flex-start;
   color: var(--white);
   padding-top: 80px;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  background-color: #2D211B; /* Match the video background color */
+  overflow: hidden;
 }
 
 .hero .container {
@@ -169,12 +173,46 @@ ul {
   overflow: hidden;
 }
 
-.hero-bg img,
-.hero-bg video {
+/* Cinematic overlay gradient to blend the video on desktop */
+.hero-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background: linear-gradient(to bottom, rgba(45, 33, 27, 0.4) 0%, rgba(45, 33, 27, 0.1) 100%);
+  pointer-events: none;
+}
+
+.hero-bg img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   filter: brightness(0.45);
+}
+
+.hero-bg video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  filter: brightness(0.45);
+}
+
+/* Widescreen and Desktop enhancements to position the unmirrored mug on the right side seamlessly */
+@media (min-width: 768px) {
+  .hero-bg::before {
+    background: linear-gradient(to right, #2D211B 0%, #2D211B 32%, rgba(45, 33, 27, 0.4) 60%, rgba(45, 33, 27, 0) 100%);
+  }
+
+  .hero-bg video {
+    position: absolute;
+    right: 0;
+    width: 75%; /* Video occupies the right 75% */
+    object-position: left center; /* Shifts the video to align its left edge (the mug) to the right-center of the screen */
+  }
 }
 
 .hero-content-left {
@@ -515,6 +553,10 @@ ul {
   color: var(--gold);
 }
 
+.footer-location-link i {
+  margin-right: 8px;
+}
+
 .contact-map-container {
   grid-column: span 3;
   margin-top: 20px;
@@ -849,9 +891,8 @@ body.mobile-menu-active {
   .contact-map-container { grid-column: span 2; }
 }
 
-@media (max-width: 768px) {
-  .hero-bg img,
-  .hero-bg video {
+@media (max-width: 992px) {
+  .hero-bg img {
     width: 100%;
     height: 100%;
     position: absolute;
@@ -860,7 +901,27 @@ body.mobile-menu-active {
     margin: 0;
     object-fit: cover;
     object-position: center center;
-    transform: none;
+  }
+
+  .hero-bg {
+    left: 0;
+    right: auto;
+    width: 100%;
+  }
+
+  .hero-bg::before {
+    background: linear-gradient(to right, #2D211B 0%, #2D211B 45%, rgba(45, 33, 27, 0.4) 68%, rgba(45, 33, 27, 0) 100%);
+  }
+
+  .hero-bg video {
+    width: 60%; /* Video occupies the right 60% of the screen */
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    object-fit: cover;
+    object-position: left center; /* Shifts the video to align its left edge (the mug) to the right-center of the screen */
   }
 
   .site-logo { height: 38px !important; }
@@ -966,9 +1027,25 @@ body.mobile-menu-active {
   .card-info p { font-size: 13px; }
 }
 
-@media (max-width: 480px) {
-  .hero-bg img,
+@media (max-width: 600px) {
+  .hero-bg::before {
+    background: linear-gradient(to right, #2D211B 0%, #2D211B 38%, rgba(45, 33, 27, 0.4) 63%, rgba(45, 33, 27, 0) 100%);
+  }
+
   .hero-bg video {
+    width: 68%; /* Video occupies the right 68% of the screen (starts at 32% screen width, pushing the cup slightly to the left) */
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    object-fit: cover;
+    object-position: left center;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-bg img {
     width: 100%;
     height: 100%;
     position: absolute;
@@ -976,7 +1053,26 @@ body.mobile-menu-active {
     left: 0;
     object-fit: cover;
     object-position: center center;
-    transform: none;
+  }
+
+  .hero-bg {
+    left: 0;
+    right: auto;
+    width: 100%;
+  }
+
+  .hero-bg::before {
+    background: linear-gradient(to right, #2D211B 0%, #2D211B 18%, rgba(45, 33, 27, 0.4) 50%, rgba(45, 33, 27, 0) 100%);
+  }
+
+  .hero-bg video {
+    width: 90%; /* Position the video on the right 90% of small screens to push the mug to the left */
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    object-fit: cover;
+    object-position: left center;
   }
 
   .hero-title { font-size: 24px !important; }

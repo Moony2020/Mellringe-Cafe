@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mellringe Café - Admin Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     * {
       box-sizing: border-box;
@@ -18,7 +19,7 @@
       padding: 0;
     }
     .container {
-      max-width: 1000px;
+      width: min(1500px, 100%);
       margin: 0 auto;
       padding: 40px 20px;
     }
@@ -33,6 +34,7 @@
       padding: 30px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.05);
       margin-bottom: 30px;
+      border: 1px solid #ece7df;
     }
     .form-group {
       margin-bottom: 20px;
@@ -126,18 +128,37 @@
       margin-top: 20px;
     }
     th, td {
-      padding: 15px;
+      padding: 13px 14px;
       text-align: left;
       border-bottom: 1px solid #eee;
     }
     th {
       font-weight: 600;
       color: #2D211B;
+      background: #fcfbf8;
     }
     .action-btn {
-      padding: 6px 12px;
-      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      font-size: 15px;
       margin-right: 5px;
+      white-space: nowrap;
+      border-radius: 8px;
+      transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    }
+    .action-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+    .action-btn:active {
+      transform: translateY(0) scale(0.95);
+    }
+    .step-buttons .action-btn {
+      margin-right: 0;
     }
     .drag-handle {
       cursor: grab;
@@ -216,13 +237,93 @@
     }
     .table-responsive {
       overflow-x: auto;
+      border-radius: 12px;
+    }
+    #menuTable {
+      min-width: 980px;
+      width: 100%;
+      table-layout: auto;
+    }
+    #menuTable th,
+    #menuTable td {
+      white-space: nowrap;
+      vertical-align: middle;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #menuTable th:nth-child(1), #menuTable td:nth-child(1) { width: 64px; }
+    #menuTable th:nth-child(2), #menuTable td:nth-child(2) { width: 110px; }
+    #menuTable th:nth-child(3), #menuTable td:nth-child(3) { width: 72px; }
+    #menuTable th:nth-child(4), #menuTable td:nth-child(4) { min-width: 220px; }
+    #menuTable th:nth-child(5), #menuTable td:nth-child(5) { min-width: 220px; }
+    #menuTable th:nth-child(6), #menuTable td:nth-child(6) { width: 130px; }
+    #menuTable th:nth-child(7), #menuTable td:nth-child(7) { width: 150px; }
+    #menuTable td:nth-child(4),
+    #menuTable td:nth-child(5),
+    #menuTable td:nth-child(6) {
+      text-overflow: clip;
+    }
+    .step-buttons {
+      display: inline-flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+    }
+    .step-buttons .action-btn {
+      width: 30px;
+      height: 30px;
+      font-size: 13px;
+    }
+    #menuList td:last-child .action-btn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+      #menuTable {
+        min-width: 860px;
+      }
+
+      #menuTable th,
+      #menuTable td {
+        padding: 9px;
+        font-size: 14px;
+      }
+
+      .action-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+        margin-right: 4px;
+      }
+
+      .step-buttons {
+        gap: 4px;
+      }
+
+      .step-buttons .action-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
+      }
+
+      #menuList td:last-child .action-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+      }
+
+      .image-preview {
+        width: 44px;
+        height: 44px;
+      }
     }
     .category-order-box {
       margin-bottom: 18px;
-      padding: 14px;
-      border: 1px solid #ececec;
+      padding: 16px;
+      border: 1px solid #e9e4db;
       border-radius: 10px;
-      background: #fafafa;
+      background: linear-gradient(180deg, #fcfbf8 0%, #f8f7f4 100%);
     }
     .category-order-title {
       margin: 0 0 10px;
@@ -240,16 +341,29 @@
       align-items: center;
       gap: 6px;
       background: #fff;
-      border: 1px solid #e3e3e3;
+      border: 1px solid #dfddd8;
       border-radius: 8px;
-      padding: 6px 8px;
+      padding: 5px 8px;
       font-size: 13px;
     }
     .category-order-item button {
-      padding: 4px 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 11px;
       background: #34495e;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    .category-order-item button:not([disabled]):hover {
+      background: #2c3e50;
+      transform: translateY(-1px);
+    }
+    .category-order-item button:not([disabled]):active {
+      transform: translateY(0) scale(0.95);
     }
     .login-wrapper {
       max-width: 400px;
@@ -717,16 +831,18 @@
         tr.innerHTML = `
           <td><span class="drag-handle" title="Dra för att ändra ordning">⋮⋮</span></td>
           <td>
-            <button type="button" class="action-btn btn-secondary" onclick="moveItemByOffset('${item._id}', '${item.category.replace(/'/g, "\\'")}', -1)">↑</button>
-            <button type="button" class="action-btn btn-secondary" onclick="moveItemByOffset('${item._id}', '${item.category.replace(/'/g, "\\'")}', 1)">↓</button>
+            <span class="step-buttons">
+              <button type="button" class="action-btn btn-secondary" onclick="moveItemByOffset('${item._id}', '${item.category.replace(/'/g, "\\'")}', -1)" title="Flytta upp"><i class="fa-solid fa-chevron-up"></i></button>
+              <button type="button" class="action-btn btn-secondary" onclick="moveItemByOffset('${item._id}', '${item.category.replace(/'/g, "\\'")}', 1)" title="Flytta ner"><i class="fa-solid fa-chevron-down"></i></button>
+            </span>
           </td>
           <td>${imgPath ? `<img src="${imgPath}" class="image-preview">` : '-'}</td>
           <td>${item.categoryIcon} ${item.category}</td>
           <td>${item.name}</td>
           <td>${item.price}</td>
           <td>
-            <button class="action-btn" onclick='editItem(${JSON.stringify(item)})'>Ändra</button>
-            <button class="action-btn btn-danger" onclick="deleteItem('${item._id}')">Ta bort</button>
+            <button class="action-btn" onclick='editItem(${JSON.stringify(item)})' title="Ändra"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button class="action-btn btn-danger" onclick="deleteItem('${item._id}')" title="Ta bort"><i class="fa-solid fa-trash"></i></button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -765,8 +881,8 @@
       const isLast = index === categories.length - 1;
       item.innerHTML = `
         <span>${category}</span>
-        <button type="button" ${isFirst ? 'disabled' : ''} onclick="moveCategoryByOffset('${category.replace(/'/g, "\\'")}', -1)">↑</button>
-        <button type="button" ${isLast ? 'disabled' : ''} onclick="moveCategoryByOffset('${category.replace(/'/g, "\\'")}', 1)">↓</button>
+        <button type="button" ${isFirst ? 'disabled' : ''} onclick="moveCategoryByOffset('${category.replace(/'/g, "\\'")}', -1)" title="Flytta upp"><i class="fa-solid fa-chevron-up"></i></button>
+        <button type="button" ${isLast ? 'disabled' : ''} onclick="moveCategoryByOffset('${category.replace(/'/g, "\\'")}', 1)" title="Flytta ner"><i class="fa-solid fa-chevron-down"></i></button>
       `;
       container.appendChild(item);
     });
