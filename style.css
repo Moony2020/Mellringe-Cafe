@@ -968,8 +968,8 @@ body.mobile-menu-active {
   .nav-container { height: 60px; }
   .section-title h2 { font-size: 22px !important; }
   .menu-card-mobile { flex: 0 0 160px; padding: 8px; }
-  .card-info h3 { font-size: 13px; }
-  .card-info p { font-size: 11px; }
+  .card-info h3 { font-size: 16px; }
+  .card-info p { font-size: 13.5px; }
 
   .category-modal {
     padding: 42px 14px;
