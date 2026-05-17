@@ -829,8 +829,8 @@ ul {
     transform: none;
   }
 
-  .site-logo { height: 24px !important; }
-  .logo-text { font-size: 12px !important; letter-spacing: 0.4px; }
+  .site-logo { height: 38px !important; }
+  .logo-text { font-size: 16px !important; letter-spacing: 0.4px; }
   .nav-container { height: 64px; }
   .hero { 
     align-items: center; 
@@ -951,9 +951,8 @@ ul {
   .btn-phone span { display: none; }
   .btn-phone { padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 13px; }
   .btn-phone i { margin: 0; font-size: 13px; }
-  .logo-text { font-size: 13px; }
-  .site-logo { height: 17px !important; }
-  .logo-text { font-size: 11px !important; }
+  .site-logo { height: 34px !important; }
+  .logo-text { font-size: 14px !important; }
   .logo-flex { gap: 6px; }
   .nav-container { height: 60px; }
   .section-title h2 { font-size: 22px !important; }
