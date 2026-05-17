@@ -126,6 +126,24 @@ function scrollMenu(direction) {
   }
 }
 
+// Keyboard Arrow Navigation for Horizontal Menu Scrolling
+window.addEventListener("keydown", (e) => {
+  // Ignore keypresses if the user is typing in forms or inputs
+  if (
+    document.activeElement.tagName === "INPUT" || 
+    document.activeElement.tagName === "TEXTAREA" || 
+    document.activeElement.isContentEditable
+  ) {
+    return;
+  }
+  
+  if (e.key === "ArrowLeft") {
+    scrollMenu("left");
+  } else if (e.key === "ArrowRight") {
+    scrollMenu("right");
+  }
+});
+
 function updateScrollArrows() {
   const container = document.getElementById("menuGrid");
   const leftArrow = document.getElementById("leftArrow");
@@ -276,79 +294,83 @@ function renderGallery() {
 
 let activeMenuData = menuData; // Default to hardcoded
 let latestMenuSignature = JSON.stringify(menuData);
+let menuEventSource = null;
+let lastMenuUpdateMarker = localStorage.getItem('mellringe_menu_last_update') || '';
 
-async function fetchMenuData() {
-  try {
-    const res = await fetch('/api/menu');
-    const items = await res.json();
-    const baseMenu = menuData.map(cat => ({
+function buildMenuFromApiItems(items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return menuData.map(cat => ({
       category: cat.category,
       icon: cat.icon,
       price: cat.price,
       image: cat.image,
       items: cat.items.map(([name, price]) => [name, price])
     }));
+  }
 
-    const byKey = {};
-    const order = [];
-    const keyOf = (value) => String(value || "").trim().toLowerCase();
+  const baseByKey = {};
+  const baseOrderKeys = [];
+  menuData.forEach(cat => {
+    const key = String(cat.category || "").trim().toLowerCase();
+    baseByKey[key] = cat;
+    baseOrderKeys.push(key);
+  });
 
-    baseMenu.forEach(cat => {
-      const key = keyOf(cat.category);
-      byKey[key] = cat;
-      order.push(key);
-    });
+  const grouped = {};
+  const discoveredOrder = [];
+  const keyOf = (value) => String(value || "").trim().toLowerCase();
 
-    const baseCategoryKeys = new Set(order);
+  items.forEach(item => {
+    const categoryName = String(item.category || "").trim();
+    if (!categoryName) return;
 
-    if (Array.isArray(items)) {
-      items.forEach(item => {
-        const categoryName = String(item.category || "").trim();
-        if (!categoryName) return;
-
-        const key = keyOf(categoryName);
-        if (!byKey[key]) {
-          byKey[key] = {
-            category: categoryName,
-            icon: item.categoryIcon || '🍽️',
-            price: item.categoryPrice || (item.price ? `Från ${item.price}` : 'Se meny'),
-            image: item.categoryImage || item.image || "images/cat-manakish.png",
-            items: []
-          };
-          order.push(key);
-        }
-
-        if (item.categoryIcon && (!byKey[key].icon || byKey[key].icon === '🍽️')) {
-          byKey[key].icon = item.categoryIcon;
-        }
-
-        if (!baseCategoryKeys.has(key) && item.categoryImage) {
-          byKey[key].image = item.categoryImage;
-        } else if (!baseCategoryKeys.has(key) && item.image && (!byKey[key].image || byKey[key].image.includes('cat-manakish.png'))) {
-          byKey[key].image = item.image;
-        }
-
-        if (!baseCategoryKeys.has(key) && item.categoryPrice) {
-          byKey[key].price = item.categoryPrice;
-        }
-
-        const itemName = String(item.name || "").trim();
-        const itemPrice = String(item.price || "").trim();
-        if (!itemName || !itemPrice) return;
-
-        const existingIndex = byKey[key].items.findIndex(([name]) =>
-          String(name).trim().toLowerCase() === itemName.toLowerCase()
-        );
-
-        if (existingIndex >= 0) {
-          byKey[key].items[existingIndex][1] = itemPrice;
-        } else {
-          byKey[key].items.push([itemName, itemPrice]);
-        }
-      });
+    const key = keyOf(categoryName);
+    if (!grouped[key]) {
+      const baseCategory = baseByKey[key];
+      grouped[key] = {
+        category: categoryName,
+        icon: item.categoryIcon || baseCategory?.icon || '🍽️',
+        price: item.categoryPrice || (item.price ? `Från ${item.price}` : (baseCategory?.price || 'Se meny')),
+        image: baseCategory?.image || item.categoryImage || item.image || "images/cat-manakish.png",
+        items: []
+      };
+      discoveredOrder.push(key);
     }
 
-    activeMenuData = order.map(key => byKey[key]);
+    if (item.categoryIcon && (!grouped[key].icon || grouped[key].icon === '🍽️')) {
+      grouped[key].icon = item.categoryIcon;
+    }
+
+    if (item.categoryPrice) {
+      grouped[key].price = item.categoryPrice;
+    }
+
+    const itemName = String(item.name || "").trim();
+    const itemPrice = String(item.price || "").trim();
+    if (!itemName || !itemPrice) return;
+
+    const existingIndex = grouped[key].items.findIndex(([name]) =>
+      String(name).trim().toLowerCase() === itemName.toLowerCase()
+    );
+
+    if (existingIndex >= 0) {
+      grouped[key].items[existingIndex][1] = itemPrice;
+    } else {
+      grouped[key].items.push([itemName, itemPrice]);
+    }
+  });
+
+  const knownKeys = baseOrderKeys.filter((key) => Boolean(grouped[key]));
+  const newKeys = discoveredOrder.filter((key) => !baseOrderKeys.includes(key));
+  const finalOrder = [...knownKeys, ...newKeys];
+  return finalOrder.map((key) => grouped[key]);
+}
+
+async function fetchMenuData() {
+  try {
+    const res = await fetch('/api/menu', { cache: 'no-store' });
+    const items = await res.json();
+    activeMenuData = buildMenuFromApiItems(items);
     latestMenuSignature = JSON.stringify(activeMenuData);
   } catch (err) {
     console.log("Could not fetch from API, using default menuData");
@@ -357,77 +379,10 @@ async function fetchMenuData() {
 
 async function refreshMenuIfChanged() {
   try {
-    const res = await fetch('/api/menu');
+    const res = await fetch('/api/menu', { cache: 'no-store' });
     const items = await res.json();
 
-    const baseMenu = menuData.map(cat => ({
-      category: cat.category,
-      icon: cat.icon,
-      price: cat.price,
-      image: cat.image,
-      items: cat.items.map(([name, price]) => [name, price])
-    }));
-
-    const byKey = {};
-    const order = [];
-    const keyOf = (value) => String(value || "").trim().toLowerCase();
-
-    baseMenu.forEach(cat => {
-      const key = keyOf(cat.category);
-      byKey[key] = cat;
-      order.push(key);
-    });
-
-    const baseCategoryKeys = new Set(order);
-
-    if (Array.isArray(items)) {
-      items.forEach(item => {
-        const categoryName = String(item.category || "").trim();
-        if (!categoryName) return;
-
-        const key = keyOf(categoryName);
-        if (!byKey[key]) {
-          byKey[key] = {
-            category: categoryName,
-            icon: item.categoryIcon || '🍽️',
-            price: item.categoryPrice || (item.price ? `Från ${item.price}` : 'Se meny'),
-            image: item.categoryImage || item.image || "images/cat-manakish.png",
-            items: []
-          };
-          order.push(key);
-        }
-
-        if (item.categoryIcon && (!byKey[key].icon || byKey[key].icon === '🍽️')) {
-          byKey[key].icon = item.categoryIcon;
-        }
-
-        if (!baseCategoryKeys.has(key) && item.categoryImage) {
-          byKey[key].image = item.categoryImage;
-        } else if (!baseCategoryKeys.has(key) && item.image && (!byKey[key].image || byKey[key].image.includes('cat-manakish.png'))) {
-          byKey[key].image = item.image;
-        }
-
-        if (!baseCategoryKeys.has(key) && item.categoryPrice) {
-          byKey[key].price = item.categoryPrice;
-        }
-
-        const itemName = String(item.name || "").trim();
-        const itemPrice = String(item.price || "").trim();
-        if (!itemName || !itemPrice) return;
-
-        const existingIndex = byKey[key].items.findIndex(([name]) =>
-          String(name).trim().toLowerCase() === itemName.toLowerCase()
-        );
-
-        if (existingIndex >= 0) {
-          byKey[key].items[existingIndex][1] = itemPrice;
-        } else {
-          byKey[key].items.push([itemName, itemPrice]);
-        }
-      });
-    }
-
-    const nextData = order.map(key => byKey[key]);
+    const nextData = buildMenuFromApiItems(items);
     const nextSignature = JSON.stringify(nextData);
     if (nextSignature !== latestMenuSignature) {
       activeMenuData = nextData;
@@ -438,6 +393,35 @@ async function refreshMenuIfChanged() {
   } catch (err) {
     // Silent for background refresh
   }
+}
+
+function startMenuRealtimeUpdates() {
+  if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
+  if (menuEventSource) return;
+
+  menuEventSource = new EventSource('/api/menu/stream');
+
+  menuEventSource.addEventListener('menu-update', () => {
+    refreshMenuIfChanged();
+  });
+
+  menuEventSource.onerror = () => {
+    // EventSource reconnects automatically; keep polling fallback active.
+  };
+}
+
+function watchMenuUpdateMarker() {
+  setInterval(() => {
+    try {
+      const marker = localStorage.getItem('mellringe_menu_last_update') || '';
+      if (marker && marker !== lastMenuUpdateMarker) {
+        lastMenuUpdateMarker = marker;
+        refreshMenuIfChanged();
+      }
+    } catch (err) {
+      // Ignore storage read issues
+    }
+  }, 1000);
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -488,10 +472,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   window.addEventListener('storage', (event) => {
     if (event.key === 'mellringe_menu_last_update') {
+      lastMenuUpdateMarker = event.newValue || '';
       refreshMenuIfChanged();
     }
   });
 
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      refreshMenuIfChanged();
+    }
+  });
+
+  startMenuRealtimeUpdates();
+  watchMenuUpdateMarker();
   setInterval(refreshMenuIfChanged, 15000);
 });
 

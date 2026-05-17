@@ -139,6 +139,15 @@
       font-size: 13px;
       margin-right: 5px;
     }
+    .drag-handle {
+      cursor: grab;
+      font-size: 20px;
+      color: #8a8a8a;
+      user-select: none;
+    }
+    tr.dragging {
+      opacity: 0.5;
+    }
     .btn-danger {
       background: #e74c3c;
     }
@@ -206,6 +215,40 @@
     }
     .table-responsive {
       overflow-x: auto;
+    }
+    .category-order-box {
+      margin-bottom: 18px;
+      padding: 14px;
+      border: 1px solid #ececec;
+      border-radius: 10px;
+      background: #fafafa;
+    }
+    .category-order-title {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: #555;
+      font-weight: 700;
+    }
+    .category-order-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .category-order-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      border: 1px solid #e3e3e3;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 13px;
+    }
+    .category-order-item button {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      background: #34495e;
     }
     .login-wrapper {
       max-width: 400px;
@@ -402,9 +445,15 @@
 
     <!-- MENU TABLE -->
     <div class="card table-responsive">
+      <div class="category-order-box">
+        <p class="category-order-title">Kategoriordning (hela kategorier)</p>
+        <div id="categoryOrderList" class="category-order-list"></div>
+      </div>
       <table id="menuTable">
         <thead>
           <tr>
+            <th>Flytta</th>
+            <th>Steg</th>
             <th>Bild</th>
             <th>Kategori</th>
             <th>Namn</th>
@@ -650,17 +699,26 @@
 
   async function loadMenu() {
     try {
-      const res = await fetch('/api/menu');
+      const res = await fetch('/api/menu', { cache: 'no-store' });
       const items = await res.json();
       menuItemsCache = Array.isArray(items) ? items : [];
       refreshCategoryOptions();
+      renderCategoryOrderControls();
       const tbody = document.getElementById('menuList');
       tbody.innerHTML = '';
       
       menuItemsCache.forEach(item => {
         const tr = document.createElement('tr');
+        tr.draggable = true;
+        tr.dataset.id = item._id;
+        tr.dataset.category = item.category;
         const imgPath = item.image ? item.image : '';
         tr.innerHTML = `
+          <td><span class="drag-handle" title="Dra för att ändra ordning">⋮⋮</span></td>
+          <td>
+            <button type="button" class="action-btn btn-secondary" onclick="moveItemByOffset('${item._id}', '${item.category.replace(/'/g, "\\'")}', -1)">↑</button>
+            <button type="button" class="action-btn btn-secondary" onclick="moveItemByOffset('${item._id}', '${item.category.replace(/'/g, "\\'")}', 1)">↓</button>
+          </td>
           <td>${imgPath ? `<img src="${imgPath}" class="image-preview">` : '-'}</td>
           <td>${item.categoryIcon} ${item.category}</td>
           <td>${item.name}</td>
@@ -672,9 +730,181 @@
         `;
         tbody.appendChild(tr);
       });
+
+      initRowReorder();
     } catch (e) {
       console.error(e);
     }
+  }
+
+  function getOrderedCategoriesFromCache() {
+    const seen = new Set();
+    const ordered = [];
+    menuItemsCache.forEach((item) => {
+      const category = String(item.category || '').trim();
+      const key = category.toLowerCase();
+      if (!category || seen.has(key)) return;
+      seen.add(key);
+      ordered.push(category);
+    });
+    return ordered;
+  }
+
+  function renderCategoryOrderControls() {
+    const container = document.getElementById('categoryOrderList');
+    if (!container) return;
+
+    const categories = getOrderedCategoriesFromCache();
+    container.innerHTML = '';
+
+    categories.forEach((category, index) => {
+      const item = document.createElement('div');
+      item.className = 'category-order-item';
+      const isFirst = index === 0;
+      const isLast = index === categories.length - 1;
+      item.innerHTML = `
+        <span>${category}</span>
+        <button type="button" ${isFirst ? 'disabled' : ''} onclick="moveCategoryByOffset('${category.replace(/'/g, "\\'")}', -1)">↑</button>
+        <button type="button" ${isLast ? 'disabled' : ''} onclick="moveCategoryByOffset('${category.replace(/'/g, "\\'")}', 1)">↓</button>
+      `;
+      container.appendChild(item);
+    });
+  }
+
+  async function moveCategoryByOffset(category, offset) {
+    const categories = getOrderedCategoriesFromCache();
+    const currentIndex = categories.findIndex((c) => c === category);
+    if (currentIndex < 0) return;
+
+    const nextIndex = currentIndex + offset;
+    if (nextIndex < 0 || nextIndex >= categories.length) return;
+
+    const nextCategories = [...categories];
+    const [moved] = nextCategories.splice(currentIndex, 1);
+    nextCategories.splice(nextIndex, 0, moved);
+
+    try {
+      const res = await fetch('/api/menu/reorder-categories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ categories: nextCategories })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        await showAlertModal(data.message || data.error || 'Kunde inte uppdatera kategoriordningen.', 'Fel vid kategorisortering');
+        return;
+      }
+
+      await loadMenu();
+      notifyMenuUpdated();
+      await showAlertModal('Kategoriordningen uppdaterades.', 'Klar');
+    } catch (err) {
+      await showAlertModal('Kunde inte ansluta till servern.', 'Anslutningsfel');
+    }
+  }
+
+  function initRowReorder() {
+    const tbody = document.getElementById('menuList');
+    if (!tbody) return;
+
+    let draggingRow = null;
+
+    tbody.querySelectorAll('tr').forEach((row) => {
+      row.addEventListener('dragstart', () => {
+        draggingRow = row;
+        row.classList.add('dragging');
+      });
+
+      row.addEventListener('dragend', async () => {
+        row.classList.remove('dragging');
+        if (!draggingRow) return;
+        const category = draggingRow.dataset.category;
+        draggingRow = null;
+        await saveCategoryOrder(category);
+      });
+
+      row.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!draggingRow || draggingRow === row) return;
+        if (draggingRow.dataset.category !== row.dataset.category) return;
+
+        const rect = row.getBoundingClientRect();
+        const isAfter = e.clientY > rect.top + rect.height / 2;
+        if (isAfter) {
+          row.after(draggingRow);
+        } else {
+          row.before(draggingRow);
+        }
+      });
+    });
+  }
+
+  async function saveCategoryOrder(category) {
+    const rows = Array.from(document.querySelectorAll('#menuList tr'))
+      .filter((row) => row.dataset.category === category);
+
+    if (rows.length === 0) return;
+
+    const itemIds = rows.map((row) => row.dataset.id).filter(Boolean);
+    if (itemIds.length === 0) return;
+
+    try {
+      const payload = JSON.stringify({ category, itemIds });
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: payload
+      };
+
+      let res = await fetch('/api/menu/reorder-category', requestOptions);
+      if (res.status === 404) {
+        res = await fetch('/api/menu/reorder', requestOptions);
+      }
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const fallbackMessage = res.status === 404
+          ? 'Sortering-route saknas i servern. Starta om servern och testa igen.'
+          : `Kunde inte uppdatera ordningen. (HTTP ${res.status})`;
+        await showAlertModal(data.message || data.error || fallbackMessage, 'Fel vid sortering');
+        await loadMenu();
+        return;
+      }
+
+      notifyMenuUpdated();
+      await showAlertModal('Ordningen uppdaterades.', 'Klar');
+    } catch (err) {
+      await showAlertModal('Kunde inte ansluta till servern.', 'Anslutningsfel');
+      await loadMenu();
+    }
+  }
+
+  async function moveItemByOffset(itemId, category, offset) {
+    const rows = Array.from(document.querySelectorAll('#menuList tr'))
+      .filter((row) => row.dataset.category === category);
+
+    const currentIndex = rows.findIndex((row) => row.dataset.id === itemId);
+    if (currentIndex < 0) return;
+
+    const nextIndex = currentIndex + offset;
+    if (nextIndex < 0 || nextIndex >= rows.length) return;
+
+    const target = rows[nextIndex];
+    const current = rows[currentIndex];
+    if (offset < 0) {
+      target.before(current);
+    } else {
+      target.after(current);
+    }
+
+    await saveCategoryOrder(category);
   }
 
   async function saveItem(e) {

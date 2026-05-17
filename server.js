@@ -127,9 +127,24 @@ const MenuItemSchema = new mongoose.Schema({
     categoryPrice: { type: String }, // e.g., 'Från 15 kr'
     name: { type: String, required: true }, // e.g., 'Zaatar'
     price: { type: String, required: true }, // e.g., '20 kr'
-    image: { type: String } // Optional specific image for the item
+    image: { type: String }, // Optional specific image for the item
+    sortOrder: { type: Number, default: 0 },
+    categoryOrder: { type: Number, default: 999 }
 });
 const MenuItem = mongoose.models.MenuItem || mongoose.model('MenuItem', MenuItemSchema);
+
+const menuSseClients = new Set();
+
+function broadcastMenuUpdated(eventType = 'updated') {
+    const payload = `event: menu-update\ndata: ${JSON.stringify({ type: eventType, ts: Date.now() })}\n\n`;
+    menuSseClients.forEach((client) => {
+        try {
+            client.write(payload);
+        } catch (err) {
+            menuSseClients.delete(client);
+        }
+    });
+}
 
 function loadDefaultMenuItemsForSeed() {
     try {
@@ -141,7 +156,7 @@ function loadDefaultMenuItemsForSeed() {
         const categories = Array.isArray(parsed?.menu) ? parsed.menu : [];
 
         const items = [];
-        categories.forEach((cat) => {
+        categories.forEach((cat, categoryIndex) => {
             const categoryName = String(cat?.title || '').trim();
             if (!categoryName) return;
 
@@ -150,7 +165,7 @@ function loadDefaultMenuItemsForSeed() {
             const categoryPrice = cat?.price || null;
             const categoryItems = Array.isArray(cat?.items) ? cat.items : [];
 
-            categoryItems.forEach((entry) => {
+            categoryItems.forEach((entry, index) => {
                 if (!Array.isArray(entry) || entry.length < 2) return;
 
                 const name = String(entry[0] || '').trim();
@@ -164,7 +179,9 @@ function loadDefaultMenuItemsForSeed() {
                     categoryPrice,
                     name,
                     price,
-                    image: null
+                    image: null,
+                    sortOrder: index,
+                    categoryOrder: categoryIndex
                 });
             });
         });
@@ -286,14 +303,41 @@ app.put('/api/auth/password', verifyAdmin, async (req, res) => {
 // 2. Get Menu
 app.get('/api/menu', async (req, res) => {
     try {
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
         if (!process.env.MONGO_URI) {
             return res.json([]); // Return empty if no DB yet
         }
-        const items = await MenuItem.find();
+        const items = await MenuItem.find().sort({ categoryOrder: 1, category: 1, sortOrder: 1, _id: 1 });
         res.json(items);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+});
+
+app.get('/api/menu/stream', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    if (typeof res.flushHeaders === 'function') res.flushHeaders();
+
+    res.write(`event: menu-update\ndata: ${JSON.stringify({ type: 'connected', ts: Date.now() })}\n\n`);
+    menuSseClients.add(res);
+
+    const heartbeat = setInterval(() => {
+        try {
+            res.write(': ping\n\n');
+        } catch (err) {
+            clearInterval(heartbeat);
+            menuSseClients.delete(res);
+        }
+    }, 25000);
+
+    req.on('close', () => {
+        clearInterval(heartbeat);
+        menuSseClients.delete(res);
+    });
 });
 
 // 2.1 Sync missing defaults into DB (Admin only)
@@ -304,6 +348,9 @@ app.post('/api/menu/sync-defaults', verifyAdmin, async (req, res) => {
         }
 
         const result = await seedMissingDefaultMenuItems();
+        if (result.insertedCount > 0) {
+            broadcastMenuUpdated('sync-defaults');
+        }
         return res.json({
             message: `Synk klart. Lade till ${result.insertedCount} saknade standardartiklar.`,
             insertedCount: result.insertedCount,
@@ -325,6 +372,10 @@ app.post('/api/menu', verifyAdmin, upload.single('image'), async (req, res) => {
 
         const normalizedCategory = String(category || '').trim();
         const existingCategoryItem = await MenuItem.findOne({ category: new RegExp(`^${normalizedCategory.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
+        const highestOrder = await MenuItem.findOne({ category: normalizedCategory }).sort({ sortOrder: -1 }).lean();
+        const highestCategoryOrder = await MenuItem.findOne({}).sort({ categoryOrder: -1 }).lean();
+        const nextSortOrder = highestOrder ? (Number(highestOrder.sortOrder) + 1) : 0;
+        const nextCategoryOrder = existingCategoryItem ? Number(existingCategoryItem.categoryOrder || 999) : Number((highestCategoryOrder?.categoryOrder ?? -1) + 1);
 
         const newItem = new MenuItem({
             category: normalizedCategory,
@@ -333,7 +384,9 @@ app.post('/api/menu', verifyAdmin, upload.single('image'), async (req, res) => {
             categoryPrice: categoryPrice || existingCategoryItem?.categoryPrice || `Från ${price}`,
             name,
             price,
-            image: imagePath
+            image: imagePath,
+            sortOrder: nextSortOrder,
+            categoryOrder: nextCategoryOrder
         });
 
         await newItem.save();
@@ -348,6 +401,8 @@ app.post('/api/menu', verifyAdmin, upload.single('image'), async (req, res) => {
             }
         }
 
+        broadcastMenuUpdated('created');
+
         res.json(newItem);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -358,7 +413,20 @@ app.post('/api/menu', verifyAdmin, upload.single('image'), async (req, res) => {
 app.put('/api/menu/:id', verifyAdmin, upload.single('image'), async (req, res) => {
     try {
         const { category, categoryIcon, categoryImage, categoryPrice, name, price } = req.body;
-        const updateData = { category, categoryIcon, categoryImage, categoryPrice, name, price };
+        const currentItem = await MenuItem.findById(req.params.id);
+        const normalizedCategory = String(category || '').trim();
+        let categoryOrder = currentItem?.categoryOrder ?? 999;
+        let sortOrder = currentItem?.sortOrder ?? 0;
+
+        if (currentItem && normalizedCategory && normalizedCategory !== currentItem.category) {
+            const targetCategoryItem = await MenuItem.findOne({ category: new RegExp(`^${normalizedCategory.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
+            const maxTargetSort = await MenuItem.findOne({ category: normalizedCategory }).sort({ sortOrder: -1 }).lean();
+            const highestCategoryOrder = await MenuItem.findOne({}).sort({ categoryOrder: -1 }).lean();
+            categoryOrder = targetCategoryItem ? Number(targetCategoryItem.categoryOrder || 999) : Number((highestCategoryOrder?.categoryOrder ?? -1) + 1);
+            sortOrder = maxTargetSort ? Number(maxTargetSort.sortOrder) + 1 : 0;
+        }
+
+        const updateData = { category: normalizedCategory, categoryIcon, categoryImage, categoryPrice, name, price, categoryOrder, sortOrder };
         if (req.file) {
             updateData.image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
         }
@@ -375,9 +443,66 @@ app.put('/api/menu/:id', verifyAdmin, upload.single('image'), async (req, res) =
             }
         }
 
+        broadcastMenuUpdated('updated');
+
         res.json(updatedItem);
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/menu/reorder-category', verifyAdmin, async (req, res) => {
+    try {
+        const { category, itemIds } = req.body;
+        if (!Array.isArray(itemIds) || itemIds.length === 0) {
+            return res.status(400).json({ message: 'itemIds krävs' });
+        }
+
+        const updates = itemIds.map((id, index) => (
+            MenuItem.updateOne({ _id: id }, { $set: { sortOrder: index } })
+        ));
+        await Promise.all(updates);
+        broadcastMenuUpdated('reordered');
+        return res.json({ message: 'Ordning uppdaterad' });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// Backward-compatible alias
+app.post('/api/menu/reorder', verifyAdmin, async (req, res) => {
+    try {
+        const { itemIds } = req.body;
+        if (!Array.isArray(itemIds) || itemIds.length === 0) {
+            return res.status(400).json({ message: 'itemIds krävs' });
+        }
+
+        const updates = itemIds.map((id, index) => (
+            MenuItem.updateOne({ _id: id }, { $set: { sortOrder: index } })
+        ));
+        await Promise.all(updates);
+        broadcastMenuUpdated('reordered');
+        return res.json({ message: 'Ordning uppdaterad' });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/menu/reorder-categories', verifyAdmin, async (req, res) => {
+    try {
+        const { categories } = req.body;
+        if (!Array.isArray(categories) || categories.length === 0) {
+            return res.status(400).json({ message: 'categories krävs' });
+        }
+
+        const updates = categories.map((category, index) => (
+            MenuItem.updateMany({ category }, { $set: { categoryOrder: index } })
+        ));
+        await Promise.all(updates);
+        broadcastMenuUpdated('categories-reordered');
+        return res.json({ message: 'Kategoriordning uppdaterad' });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
     }
 });
 
@@ -385,6 +510,7 @@ app.put('/api/menu/:id', verifyAdmin, upload.single('image'), async (req, res) =
 app.delete('/api/menu/:id', verifyAdmin, async (req, res) => {
     try {
         await MenuItem.findByIdAndDelete(req.params.id);
+        broadcastMenuUpdated('deleted');
         res.json({ message: 'Deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
