@@ -804,7 +804,8 @@ ul {
   .mobile-toggle { display: flex; }
   .header-right { gap: 10px; }
   .logo-text { font-size: 16px; }
-  .site-logo { height: 40px; }
+  .site-logo { height: 30px !important; }
+  .logo-flex { gap: 8px; }
   .btn-phone { padding: 8px 15px; font-size: 12px; }
   .nav-container { height: 70px; }
   
@@ -814,15 +815,46 @@ ul {
 }
 
 @media (max-width: 768px) {
-  .hero { align-items: center; text-align: center; justify-content: center; padding-top: 100px; }
-  .hero-content-left { text-align: center; padding: 0 20px; }
-  .hero-actions { flex-direction: column; width: 100%; align-items: center; }
-  .hero-actions .btn { width: 100%; max-width: 160px; justify-content: center; padding: 8px 15px; font-size: 13px; }
+  .site-logo { height: 24px !important; }
+  .logo-text { font-size: 12px !important; letter-spacing: 0.4px; }
+  .nav-container { height: 64px; }
+  .hero { 
+    align-items: center; 
+    text-align: left; 
+    justify-content: flex-start; 
+    padding-top: 90px; 
+    padding-bottom: 40px; 
+    min-height: 550px; /* Reduced from 100vh to make the background video smaller and less zoomed-in! */
+    height: auto;
+  }
+  .hero-content-left { 
+    text-align: left; 
+    padding: 0 20px; 
+  }
+  .hero-actions { 
+    display: flex;
+    flex-direction: row; 
+    width: 100%; 
+    justify-content: flex-start; 
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  .hero-actions .btn { 
+    width: auto; 
+    max-width: none; 
+    padding: 10px 20px; 
+    font-size: 13px; 
+    justify-content: center;
+  }
   .hero-title { font-size: 30px !important; }
-  .hero-subtitle { font-size: 14px; }
+  .hero-subtitle { font-size: 14px; margin-bottom: 25px; }
   .hero-cursive { font-size: 22px; }
-  .hero-footer-links { flex-direction: column; gap: 12px; }
-  .hero-footer-links .divider { display: none; }
+  .hero-footer-links { 
+    flex-direction: row; 
+    flex-wrap: wrap;
+    gap: 15px; 
+  }
+  .hero-footer-links .divider { display: inline; }
   .hero-social-link, .hero-contact-link { font-size: 13px; }
   .hero-social-link i, .hero-contact-link i { font-size: 15px; }
   
@@ -894,7 +926,9 @@ ul {
   .btn-phone { padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 13px; }
   .btn-phone i { margin: 0; font-size: 13px; }
   .logo-text { font-size: 13px; }
-  .site-logo { height: 32px; }
+  .site-logo { height: 20px !important; }
+  .logo-flex { gap: 6px; }
+  .nav-container { height: 60px; }
   .section-title h2 { font-size: 22px !important; }
   .menu-card-mobile { flex: 0 0 160px; padding: 8px; }
   .card-info h3 { font-size: 13px; }
