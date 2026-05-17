@@ -73,26 +73,45 @@ const AdminSchema = new mongoose.Schema({
 });
 const Admin = mongoose.model('Admin', AdminSchema);
 
-// MongoDB Connection
-if (process.env.MONGO_URI) {
-    mongoose.connect(process.env.MONGO_URI)
-        .then(async () => {
-            console.log('MongoDB Connected');
-            // Seed admin if not exists
-            const adminExists = await Admin.findOne({ username: process.env.ADMIN_USERNAME });
-            if (!adminExists) {
-                const salt = await bcrypt.genSalt(10);
-                const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, salt);
-                await Admin.create({ username: process.env.ADMIN_USERNAME, password: hashedPassword });
-                console.log('Admin account created from .env');
-            }
+// MongoDB Connection Middleware (Serverless/Netlify compatible)
+let isConnected = false;
+const connectDB = async (req, res, next) => {
+    // If database is already connected, bypass
+    if (isConnected || mongoose.connection.readyState === 1) {
+        isConnected = true;
+        return next();
+    }
 
-            await seedMissingDefaultMenuItems();
-        })
-        .catch(err => console.log(err));
-} else {
-    console.warn("MONGO_URI not found in .env. Running without database connection.");
-}
+    try {
+        if (!process.env.MONGO_URI) {
+            console.warn("MONGO_URI not found in environment variables. Running in fallback mode.");
+            return next();
+        }
+
+        console.log('Connecting to MongoDB...');
+        await mongoose.connect(process.env.MONGO_URI);
+        isConnected = true;
+        console.log('MongoDB Connected');
+
+        // Seed admin if not exists
+        const adminExists = await Admin.findOne({ username: process.env.ADMIN_USERNAME });
+        if (!adminExists) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, salt);
+            await Admin.create({ username: process.env.ADMIN_USERNAME, password: hashedPassword });
+            console.log('Admin account created from middleware seed');
+        }
+
+        // Seed missing defaults
+        await seedMissingDefaultMenuItems();
+        next();
+    } catch (err) {
+        console.error('Database connection failed in middleware:', err.message);
+        res.status(500).json({ error: 'Database connection failed: ' + err.message });
+    }
+};
+
+app.use(connectDB);
 
 // Menu Item Schema
 const MenuItemSchema = new mongoose.Schema({
