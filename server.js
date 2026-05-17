@@ -29,9 +29,13 @@ app.get('/favicon.ico', (req, res) => {
     }
 });
 
-// Create uploads folder if it doesn't exist
-if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
-    fs.mkdirSync(path.join(__dirname, 'uploads'));
+// Create uploads folder if it doesn't exist (fails silently on read-only serverless filesystems)
+try {
+    if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
+        fs.mkdirSync(path.join(__dirname, 'uploads'));
+    }
+} catch (err) {
+    console.warn('Uploads directory creation skipped (read-only filesystem):', err.message);
 }
 
 const ADMIN_AUTH_STORE_PATH = path.join(__dirname, 'admin-auth.json');
@@ -71,7 +75,7 @@ const AdminSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true }
 });
-const Admin = mongoose.model('Admin', AdminSchema);
+const Admin = mongoose.models.Admin || mongoose.model('Admin', AdminSchema);
 
 // MongoDB Connection Middleware (Serverless/Netlify compatible)
 let isConnected = false;
@@ -125,7 +129,7 @@ const MenuItemSchema = new mongoose.Schema({
     price: { type: String, required: true }, // e.g., '20 kr'
     image: { type: String } // Optional specific image for the item
 });
-const MenuItem = mongoose.model('MenuItem', MenuItemSchema);
+const MenuItem = mongoose.models.MenuItem || mongoose.model('MenuItem', MenuItemSchema);
 
 function loadDefaultMenuItemsForSeed() {
     try {
