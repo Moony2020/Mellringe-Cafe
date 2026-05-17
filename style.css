@@ -677,6 +677,31 @@ ul {
   padding: 60px 20px;
 }
 
+.category-modal-content {
+  max-width: 800px;
+  padding-top: 4px;
+}
+
+.category-modal-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  margin-left: -8px;
+}
+
+.category-modal-icon {
+  font-size: 50px;
+  margin-left: -2px;
+}
+
+.category-modal-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.55rem, 4.6vw, 2.2rem);
+  line-height: 1.1;
+  margin: 0;
+}
+
 /* Mobile Menu - Sidebar from Left */
 .mobile-menu {
   position: fixed;
@@ -813,6 +838,28 @@ ul {
 
   .section-title h2 { font-size: 28px; }
   .section-subtitle { font-size: 14px; }
+
+  .category-modal {
+    padding: 48px 16px;
+  }
+
+  .category-modal-content {
+    padding-top: 0;
+  }
+
+  .category-modal-header-row {
+    gap: 8px;
+    margin-left: -10px;
+    margin-bottom: 20px;
+  }
+
+  .category-modal-icon {
+    font-size: 44px;
+  }
+
+  .category-modal-title {
+    font-size: clamp(1.4rem, 6vw, 1.85rem);
+  }
   
   /* Footer Responsiveness */
   .footer-grid { grid-template-columns: 1fr; gap: 40px; text-align: center; }
@@ -827,6 +874,11 @@ ul {
   .bottom-cards-mobile .bottom-card:nth-child(3) { grid-column: span 1; }
   .contact-map-container { grid-column: span 1; }
   .contact-card { padding: 15px; }
+  
+  /* Make menu items slightly smaller on tablet */
+  .menu-card-mobile { flex: 0 0 195px; padding: 10px; }
+  .card-info h3 { font-size: 16px; }
+  .card-info p { font-size: 13px; }
 }
 
 @media (max-width: 480px) {
@@ -839,9 +891,27 @@ ul {
   .logo-text { font-size: 13px; }
   .site-logo { height: 32px; }
   .section-title h2 { font-size: 22px !important; }
-  .menu-card-mobile { flex: 0 0 180px; }
-  .card-info h3 { font-size: 14px; }
-  .card-info p { font-size: 12px; }
+  .menu-card-mobile { flex: 0 0 160px; padding: 8px; }
+  .card-info h3 { font-size: 13px; }
+  .card-info p { font-size: 11px; }
+
+  .category-modal {
+    padding: 42px 14px;
+  }
+
+  .category-modal-header-row {
+    gap: 6px;
+    margin-left: -12px;
+    margin-bottom: 18px;
+  }
+
+  .category-modal-icon {
+    font-size: 40px;
+  }
+
+  .category-modal-title {
+    font-size: clamp(1.25rem, 7vw, 1.6rem);
+  }
 }
 
 /* Animations */
