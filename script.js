@@ -425,6 +425,13 @@ function watchMenuUpdateMarker() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Set playsinline dynamically to satisfy HTML linter while maintaining perfect iOS Safari support
+  const heroVideo = document.querySelector(".hero-video");
+  if (heroVideo) {
+    heroVideo.setAttribute("playsinline", "");
+    heroVideo.setAttribute("webkit-playsinline", "");
+  }
+
   await fetchMenuData();
   renderMenu();
   renderGallery();
