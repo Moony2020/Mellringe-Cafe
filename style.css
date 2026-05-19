@@ -153,8 +153,8 @@ ul {
   justify-content: flex-start;
   color: var(--white);
   padding-top: 80px;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
+  width: 100%;
+  margin-left: 0;
   background-color: #2D211B; /* Match the video background color */
   overflow: hidden;
 }
@@ -194,24 +194,25 @@ ul {
 }
 
 .hero-bg video {
-  width: 100%;
+  position: absolute;
+  top: 0;
+  left: -2px;
+  width: calc(100% + 4px);
   height: 100%;
   object-fit: cover;
-  object-position: center center;
+  object-position: 76% center;
   filter: brightness(0.45);
 }
 
 /* Widescreen and Desktop enhancements to position the unmirrored mug on the right side seamlessly */
 @media (min-width: 768px) {
   .hero-bg::before {
-    background: linear-gradient(to right, #2D211B 0%, #2D211B 32%, rgba(45, 33, 27, 0.4) 60%, rgba(45, 33, 27, 0) 100%);
+    background: linear-gradient(to right, rgba(45, 33, 27, 0.78) 0%, rgba(45, 33, 27, 0.56) 16%, rgba(45, 33, 27, 0.2) 40%, rgba(45, 33, 27, 0) 62%);
   }
 
   .hero-bg video {
-    position: absolute;
-    right: 0;
-    width: 75%; /* Video occupies the right 75% */
-    object-position: left center; /* Shifts the video to align its left edge (the mug) to the right-center of the screen */
+    object-position: calc(82% + 10px) center;
+    transform: none;
   }
 }
 
@@ -907,21 +908,19 @@ body.mobile-menu-active {
     left: 0;
     right: auto;
     width: 100%;
+    background-color: #2D211B;
   }
 
   .hero-bg::before {
-    background: linear-gradient(to right, #2D211B 0%, #2D211B 45%, rgba(45, 33, 27, 0.4) 68%, rgba(45, 33, 27, 0) 100%);
+    background: linear-gradient(to right, rgba(45, 33, 27, 0.8) 0%, rgba(45, 33, 27, 0.62) 34%, rgba(45, 33, 27, 0.28) 56%, rgba(45, 33, 27, 0) 78%);
   }
 
   .hero-bg video {
-    width: 60%; /* Video occupies the right 60% of the screen */
-    height: 100%;
-    position: absolute;
-    top: 0;
-    right: 0;
+    left: -20px;
+    width: calc(100% + 40px);
+    right: auto;
     margin: 0;
-    object-fit: cover;
-    object-position: left center; /* Shifts the video to align its left edge (the mug) to the right-center of the screen */
+    object-position: calc(80% + 10px) center;
   }
 
   .site-logo { height: 38px !important; }
@@ -1029,21 +1028,13 @@ body.mobile-menu-active {
   .card-info p { font-size: 13px; }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .hero-bg::before {
-    background: linear-gradient(to right, #2D211B 0%, #2D211B 38%, rgba(45, 33, 27, 0.4) 63%, rgba(45, 33, 27, 0) 100%);
+    display: none;
   }
 
   .hero-bg video {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    margin: 0;
-    object-fit: cover;
-    object-position: left center;
+    object-position: calc(80% - 10px) center;
   }
 }
 
@@ -1065,18 +1056,12 @@ body.mobile-menu-active {
   }
 
   .hero-bg::before {
-    background: linear-gradient(to right, #2D211B 0%, #2D211B 18%, rgba(45, 33, 27, 0.4) 50%, rgba(45, 33, 27, 0) 100%);
+    display: none;
   }
 
   .hero-bg video {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    object-fit: cover;
-    object-position: left center;
+    object-position: calc(78% - 30px) center;
+    transform: none;
   }
 
   .hero-title { font-size: 24px !important; }
@@ -1157,6 +1142,11 @@ body.mobile-menu-active {
 /* Utility Classes */
 .hidden-modal {
   display: none;
+}
+.border-zero {
+  border: 0;
+  border-radius: 20px;
+}
 }
 .border-zero {
   border: 0;
