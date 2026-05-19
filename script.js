@@ -500,3 +500,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 window.onload = () => {
   updateScrollArrows();
 };
+
+function toggleGallery() {
+  const hiddenItems = document.querySelectorAll('.gallery-item.additional-item');
+  const btn = document.getElementById('toggleGalleryBtn');
+  if (!btn) return;
+  
+  const isExpanded = btn.classList.contains('expanded');
+  
+  if (isExpanded) {
+    // Hide additional items
+    hiddenItems.forEach(item => {
+      item.classList.add('hidden-item');
+    });
+    btn.textContent = 'Visa fler bilder';
+    btn.classList.remove('expanded');
+    
+    // Smoothly scroll back to the gallery header so the user doesn't get lost
+    document.getElementById('gallery').scrollIntoView({ behavior: 'smooth' });
+  } else {
+    // Show additional items
+    hiddenItems.forEach(item => {
+      item.classList.remove('hidden-item');
+    });
+    btn.textContent = 'Visa färre bilder';
+    btn.classList.add('expanded');
+  }
+}
+
