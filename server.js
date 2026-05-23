@@ -274,6 +274,54 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+// 1.1 Forgot Password (Reset Password)
+app.post('/api/auth/forgot-password', async (req, res) => {
+    try {
+        const { username, secretKey, newPassword } = req.body;
+        if (!username || !secretKey || !newPassword) {
+            return res.status(400).json({ message: 'Alla fält krävs.' });
+        }
+
+        // Normalize inputs
+        const normalizedUsername = String(username).trim().toLowerCase();
+
+        // Verify recovery secret key (must match ADMIN_RESET_SECRET from env)
+        const systemSecret = process.env.ADMIN_RESET_SECRET || 'MellringeReset2026!';
+        if (String(secretKey).trim() !== systemSecret) {
+            return res.status(400).json({ message: 'Felaktig återställningsnyckel (Security Recovery Key).' });
+        }
+
+        // If local auth fallback
+        if (!process.env.MONGO_URI) {
+            const localAuth = getLocalAdminAuth();
+            if (normalizedUsername !== String(localAuth.username).trim().toLowerCase()) {
+                return res.status(400).json({ message: 'Felaktigt admin-användarnamn/e-post.' });
+            }
+
+            saveLocalAdminAuth({
+                username: localAuth.username,
+                password: newPassword
+            });
+
+            return res.json({ message: 'Lösenordet har återställts framgångsrikt.' });
+        }
+
+        // MongoDB mode
+        const admin = await Admin.findOne({ username: new RegExp(`^${normalizedUsername.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
+        if (!admin) {
+            return res.status(400).json({ message: 'Felaktigt admin-användarnamn/e-post.' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        admin.password = await bcrypt.hash(newPassword, salt);
+        await admin.save();
+
+        res.json({ message: 'Lösenordet har återställts framgångsrikt.' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Change Password
 app.put('/api/auth/password', verifyAdmin, async (req, res) => {
     try {

@@ -54,12 +54,11 @@
       "items": [
         ["Zaatar", "20 kr"],
         ["Ost", "25 kr"],
-        ["Muhammara", "20 kr"],
         ["Grönsaker", "30 kr"],
         ["Kyckling", "30 kr"],
         ["Ost burak", "29 kr"],
         ["Fatayer kött", "29 kr"],
-        ["Bröd 400 gr", "15 kr"]
+        ["Bröd 400 g", "15 kr"]
       ]
     },
     {
@@ -69,8 +68,8 @@
       "price": "Från 55 kr",
       "items": [
         ["Falafelrulle", "60 kr"],
-        ["Falafel with bread", "60 kr"],
-        ["Falafel snacks", "55 kr"],
+        ["Falafel med bröd", "60 kr"],
+        ["Falafelsnacks", "55 kr"],
         ["Falafelsallad", "75 kr"]
       ]
     },
@@ -105,6 +104,20 @@
         ["Grönsakssmörgås", "35 kr"]
       ],
       "note": "Färska smörgåsar. Fråga caféet om dagens sortiment."
+    },
+    {
+      "title": "Meze, sallader & röror",
+      "icon": "🥗",
+      "image": "images/cat-meze.png",
+      "price": "Från 20 kr",
+      "items": [
+        ["Fattoush", "80 kr / 800 g"],
+        ["Tabbouleh", "80 kr / 600 g"],
+        ["Bulgur", "70 kr / 700 g"],
+        ["Hummus", "25 kr / 250 g"],
+        ["Mutabbal", "30 kr / 250 g"],
+        ["Muhammara", "20 kr"]
+      ]
     }
   ],
   "settings": {

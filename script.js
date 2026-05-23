@@ -53,12 +53,11 @@ const menuData = [
     items: [
       ["Zaatar", "20 kr"],
       ["Ost", "25 kr"],
-      ["Muhammara", "20 kr"],
       ["Grönsaker", "30 kr"],
       ["Kyckling", "30 kr"],
       ["Ost burak", "29 kr"],
       ["Fatayer kött", "29 kr"],
-      ["Bröd 400 gr", "15 kr"]
+      ["Bröd 400 g", "15 kr"]
     ]
   },
   {
@@ -69,7 +68,7 @@ const menuData = [
     items: [
       ["Falafelrulle", "60 kr"],
       ["Falafel med bröd", "60 kr"],
-      ["Falafel snacks", "55 kr"],
+      ["Falafelsnacks", "55 kr"],
       ["Falafelsallad", "75 kr"]
     ]
   },
@@ -102,6 +101,20 @@ const menuData = [
     items: [
       ["Kycklingsmörgås", "45 kr"],
       ["Vegetarisk smörgås", "35 kr"]
+    ]
+  },
+  {
+    category: "Meze, sallader & röror",
+    icon: "🥗",
+    price: "Från 20 kr",
+    image: "images/cat-meze.png",
+    items: [
+      ["Fattoush", "80 kr / 800 g"],
+      ["Tabbouleh", "80 kr / 600 g"],
+      ["Bulgur", "70 kr / 700 g"],
+      ["Hummus", "25 kr / 250 g"],
+      ["Mutabbal", "30 kr / 250 g"],
+      ["Muhammara", "20 kr"]
     ]
   }
 ];

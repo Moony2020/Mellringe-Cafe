@@ -468,6 +468,46 @@
         </div>
       </div>
       <button type="submit" class="w-100">Logga In</button>
+      <div style="margin-top: 15px; text-align: center;">
+        <button type="button" style="background: none; border: none; color: #C4A47C; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: underline; padding: 0;" onclick="showForgotPasswordForm()">Glömt lösenord?</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- FORGOT PASSWORD SECTION -->
+  <div id="forgotPasswordSection" class="card login-wrapper hidden">
+    <h2 class="text-center mt-0">Återställ lösenord</h2>
+    <form id="forgotPasswordForm" onsubmit="resetForgotPassword(event)">
+      <div class="form-group">
+        <label for="forgotUser">Registrerad e-post</label>
+        <input type="text" id="forgotUser" placeholder="T.ex. admin@mellringecafe.se" title="Registrerad e-post" required>
+      </div>
+      <div class="form-group">
+        <label for="forgotSecretKey">Säker återställningsnyckel (Master Recovery Key)</label>
+        <input type="password" id="forgotSecretKey" placeholder="Skriv din hemliga återställningsnyckel" title="Återställningsnyckel" required>
+      </div>
+      <div class="form-group">
+        <label for="forgotNewPass">Nytt lösenord</label>
+        <div class="password-field">
+          <input type="password" id="forgotNewPass" placeholder="Nytt lösenord" title="Nytt lösenord" required>
+          <button type="button" class="toggle-password" onclick="togglePasswordVisibility('forgotNewPass', this)" aria-label="Visa eller dölj nytt lösenord">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="forgotNewPassConfirm">Bekräfta nytt lösenord</label>
+        <div class="password-field">
+          <input type="password" id="forgotNewPassConfirm" placeholder="Bekräfta nytt lösenord" title="Bekräfta nytt lösenord" required>
+          <button type="button" class="toggle-password" onclick="togglePasswordVisibility('forgotNewPassConfirm', this)" aria-label="Visa eller dölj bekräftelse">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="w-100">Återställ Lösenord</button>
+      <div style="margin-top: 15px; text-align: center;">
+        <button type="button" style="background: none; border: none; color: #666; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: underline; padding: 0;" onclick="showLoginForm()">Tillbaka till inloggning</button>
+      </div>
     </form>
   </div>
 
@@ -774,11 +814,60 @@
     }
   }
 
+  function showForgotPasswordForm() {
+    document.getElementById('loginSection').classList.remove('active-section');
+    document.getElementById('forgotPasswordSection').classList.add('active-section');
+  }
+
+  function showLoginForm() {
+    document.getElementById('forgotPasswordSection').classList.remove('active-section');
+    document.getElementById('loginSection').classList.add('active-section');
+  }
+
+  async function resetForgotPassword(event) {
+    if (event) event.preventDefault();
+    const username = document.getElementById('forgotUser').value.trim();
+    const secretKey = document.getElementById('forgotSecretKey').value.trim();
+    const newPassword = document.getElementById('forgotNewPass').value;
+    const confirmPassword = document.getElementById('forgotNewPassConfirm').value;
+
+    if (newPassword !== confirmPassword) {
+      await showAlertModal('Lösenorden matchar inte.', 'Fel');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, secretKey, newPassword })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        await showAlertModal('Ditt lösenord har återställts framgångsrikt. Du kan nu logga in med ditt nya lösenord.', 'Klar');
+        showLoginForm();
+      } else {
+        await showAlertModal(data.message || 'Kunde inte återställa lösenordet.', 'Fel');
+      }
+    } catch (e) {
+      await showAlertModal('Kunde inte ansluta till servern.', 'Anslutningsfel');
+    }
+  }
+
   function logout() {
     localStorage.removeItem('adminToken');
     token = null;
     document.getElementById('loginSection').classList.add('active-section');
     document.getElementById('dashboardSection').classList.remove('active-section');
+  }
+
+  async function checkAuthResponse(res) {
+    if (res.status === 401 || res.status === 403) {
+      await showAlertModal('Din inloggningssession har löpt ut eller är ogiltig. Vänligen logga in igen.', 'Sessionen har löpt ut');
+      logout();
+      return true;
+    }
+    return false;
   }
 
   async function syncDefaultMenu() {
@@ -792,6 +881,8 @@
           'Authorization': 'Bearer ' + token
         }
       });
+
+      if (await checkAuthResponse(res)) return;
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -910,6 +1001,8 @@
         body: JSON.stringify({ categories: nextCategories })
       });
 
+      if (await checkAuthResponse(res)) return;
+
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         await showAlertModal(data.message || data.error || 'Kunde inte uppdatera kategoriordningen.', 'Fel vid kategorisortering');
@@ -984,6 +1077,8 @@
       if (res.status === 404) {
         res = await fetch('/api/menu/reorder', requestOptions);
       }
+
+      if (await checkAuthResponse(res)) return;
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -1066,6 +1161,9 @@
         },
         body: formData
       });
+
+      if (await checkAuthResponse(res)) return;
+
       if (res.ok) {
         const successMessage = id
           ? 'Produkten uppdaterades framgangsrikt.'
@@ -1114,6 +1212,9 @@
           'Authorization': 'Bearer ' + token
         }
       });
+
+      if (await checkAuthResponse(res)) return;
+
       if (res.ok) {
         await loadMenu();
         notifyMenuUpdated();
@@ -1152,6 +1253,9 @@
         },
         body: JSON.stringify({ oldPassword, newPassword })
       });
+
+      if (await checkAuthResponse(res)) return;
+
       const data = await res.json();
       if (res.ok) {
         setPasswordStatus('Losenordet har uppdaterats.', 'success');
